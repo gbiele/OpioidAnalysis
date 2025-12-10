@@ -1,0 +1,49 @@
+# Drug wanting and liking 
+
+Here we analyse self-reported drug wanting and liking after the drug administration.
+
+The data for the second drug administration includes only participants who wanted a second dosage larger than zero.
+
+```{r, fig.cap="Drug liking, disliking, and wanting after the administration of the first and second dose."}
+my_data[is.na(satisfact), last.trial := ifelse(time == max(time),TRUE,FALSE), by = .(session, participant)]
+
+my_data_beh = 
+  my_data[last.trial == TRUE & is.na(satisfact)] %>% 
+  .[, stage := 0] %>% 
+  .[, N.oxy := sum(Drug == "oxycodone"), by = .(participant)] %>% 
+  .[N.oxy > 1] %>% 
+  .[, s.effect_obtained := effect_obtained-mean(effect_obtained), by = .(participant)] %>% 
+  .[, s.effect_obtained := s.effect_obtained + mean(effect_obtained)] 
+pdata = 
+  my_data.Q %>% 
+  setkeyv(key(my_data_beh)) %>% 
+  .[item_name %in% c("drug_like","drug_again","drug_dislike") & stage %in% c(5,11)] %>% 
+  .[my_data, effect_obtained := effect_obtained] %>% 
+  .[stage == 5, effect_obtained := 100] %>% 
+  .[stage == 11 & effect_obtained == 0, effect_obtained := NA] %>% 
+  .[, .(response = mean(response, na.rm = TRUE), sd = sd(response, na.rm = TRUE), N = .N),
+    by = .(state.condition,Drug,stage,item_name)] %>% 
+  .[, se := sd/sqrt(N)] %>% 
+  .[, `:=`(lower=response-2*se,
+           upper=response+2*se)] %>% 
+  .[, time := stage-4] %>% 
+  .[time>1, time := time-4] %>% 
+  .[state.condition == "control", time:=time-.05] %>% 
+  .[state.condition != "control", time:=time+.05] %>% 
+  .[, Stage := factor(stage.names[stage],levels = stage.names)]
+
+pdata %>% 
+  ggplot(aes(x = Stage, y = response, ymin=lower, ymax=upper,
+             color = Drug, shape = state.condition), group = state.condition) +
+  geom_pointrange(size = 1, position = position_dodge(.2)) +
+  #geom_vline(xintercept = c(0.75,2.75), lty = 2, alpha = .5) +
+  #scale_x_continuous(breaks = c(0.75,2.75), labels = c("dose 1","dose 2")) +  
+  ylab("Response") + 
+  guides(color=guide_legend(nrow=2,byrow=TRUE),
+         shape=guide_legend(nrow=2,byrow=TRUE)) +
+  scale_col_drug + 
+  xlab("Time in the experiment") +
+  facet_wrap(~item_name) +
+  theme(legend.position = "bottom") + 
+  theme(axis.line = element_line())
+```

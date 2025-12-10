@@ -1,0 +1,111 @@
+
+```{r, results='asis', echo = FALSE}
+var.name = var.names[var]
+show.details = ifelse(var == vars[1],TRUE,FALSE)
+cat(paste("###", stringr::str_to_title(var.name), "ratings\n"))
+cat(paste("Here is a plot of",var.name,", measured as the difference between the oxycodone and placebo conditions, dependent on sex.\n"))
+base_caption_contrast = "The figure shows Left: MYVAR by sex. Top right: MYVAR by stress condition. Note that MYVAR is the difference in MYVAR between the ocycodone and placebo conditions. Bottom right, clockwise from top left: Sex differences in MYVAR, stress effect on MYVAR, sex difference in MYVAR in the stress condition, sex difference in MYVAR in the control condition (for stress). Bottom right: Difference between the sex differences in MYVAR between the control and stress condition.\n\n"
+my_caption_contrast = gsub("MYVAR",gsub("_"," ",var.name),base_caption_contrast)
+my_caption_lines = paste(var.name, "stratified by stress condition and sex. Drug liking is measured as the slope of the lines from placebo to ocxcodone. Each line represents one participant.)")
+my_caption_density = paste("Distribution of",var.name,"effects, stratified by stress condition (in panles) and sex (in colors).)")
+```
+
+
+```{r, fig.height=3, fig.cap=my_caption_lines, echo=show.details}
+my_data.Q.drug56 = my_data.Q.drug56[stage %in% 5:6]
+the_data = my_data.Q.drug56[item_name == var]
+if (var == "pos_affect") the_data = my_data.Q.drug56[item_name %in% posaffect_items]
+if (var == "neg_affect") the_data = my_data.Q.drug56[item_name %in% negaffect_items]
+the_data %>% plot_drug_lines()
+```
+
+We can again summarize the data by plotting the distribution of the difference in liking between drug conditions.
+
+```{r, fig.height=3, fig.cap=my_caption_density, echo=show.details}
+p = plot_drug(the_data)
+the_data = the_data %>% coarsen(var = "response", bins = 20, range = c(0,100))
+raw_contrasts.drug = 
+  rbind(
+    raw_contrasts.drug,
+    plot_drug(the_data)$data[, .(participant, Sex, drug_effect, state.condition)] %>% 
+      .[, Outcome := var]
+  )
+# raw_contrasts.drug = rbind(
+#       raw_contrasts.drug,
+#       plot_drug(the_data)$data[, .(participant, Sex, drug_effect, state.condition)][, Outcome := var]
+#     )
+p
+```
+
+```{r, results='asis', echo = FALSE, eval=show.details}
+cat("Here is the full factorial model we use to estimate the effect of stress:")
+```
+
+
+
+```{r class.source = 'fold-show', eval=show.details, echo=show.details}
+drug_formula = 
+  response.c ~ state.condition:Sex:Drug + 
+               (1|session) + (1|participant/stage) +
+               (0+state.condition:Drug|participant)
+```
+
+
+```{r, results='asis', echo = FALSE, eval=show.details}
+cat("We estimate the model")
+```
+
+```{r fig.cap="Posterior predictive check", echo = show.details}
+fn = paste0("fits/drug/",gsub("drug_","",var),".Rdata")
+if (file.exists(fn)) {
+  load(fn)
+} else {
+  fit = fit_ordinal_model(the_data, drug_formula, fn, family = acat())
+}
+#pp_check(fit, ndraws = 2000, type = "bars")
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.1 and the effect sample size (ess) should be larger than 500.", fig.height=3}
+sample_diags = fit %>% model_summary()
+sample_diags$plot
+```
+
+```{r results='asis', echo = FALSE}
+if (rmd_output == "html") {
+  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat(sample_diags$table)
+  cat("</details> \n <br>")
+}
+```
+
+```{r, results='asis', echo = FALSE, eval=show.details}
+cat("For the following results we calculate the effect of stress on drug liking as `liking_in_oxycodone - liking_in_placebo`, so that positive numbers mean that liking is greater in the stress condition.\n\nHere are the estimated responses in the 'cells' of the design, stratified by sex:")
+```
+
+
+```{r, echo = show.details}
+post.contrasts = get_drug_contrasts(fit, the_data)
+
+attr(post.contrasts,"cell_stats") %>% 
+  my_flextable(
+    caption = paste0("Estimated responses for '",
+                     var.name,
+                     "' by sex, state condition, drug"))
+```
+
+
+```{r, fig.height=6, fig.cap=my_caption_contrast}
+drug_plotter(post.contrasts)
+```
+
+```{r}
+  drug_effects.stats = rbind(
+    drug_effects.stats,
+    get_drug_effects.stats(post.contrasts, var))
+  drug_effects.stats.b = rbind(
+    drug_effects.stats.b,
+    get_drug_effects.stats.b(post.contrasts, var))
+  
+  make_tbl(post.contrasts,
+           caption = paste0("Main and interaction effects of drug on '", var,"'.")) 
+```

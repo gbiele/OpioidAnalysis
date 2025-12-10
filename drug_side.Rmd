@@ -1,0 +1,44 @@
+```{r echo=FALSE,message=FALSE,results="asis"}
+var.name = gsub("_"," ",var)
+cat(paste("\n\n### Side effect: ",stringr::str_to_title(var.name),"\n"))
+data_caption = paste0("Raw data for '", var.name ,"' ratings.")
+results_caption = paste0("Posterior distributions of the effect of drug on'",var.name,"' ratings.")
+```
+
+```{r, echo=show.details, message=FALSE,results="asis", fig.cap=data_caption, fig.height=2.5}
+the_data = 
+  make_the_data(
+    select_data(c(var)) %>% .[stage %in% 4:5],
+    phase = "drug") %>% 
+  .[, outcome := var]
+
+the_data = 
+  the_data %>%
+  .[, Drug := factor(Drug, levels = c("placebo","oxycodone"))] %>% 
+  coarsen(var = "response", bins = 20, range = c(0,100))
+the_data %>% plot_pre_post("drug") + scale_color_manual(values = c("black","blue"))
+```
+
+```{r, echo=show.details, message=FALSE,results="asis"}
+fn = paste0("fits/",var,"_acat.Rdata")
+if (file.exists(fn)) {
+    load(fn)
+  } else {
+    fit = fit_ordinal_model(the_data, drug_formula, fn, family = acat())
+  }
+```
+
+
+```{r, echo=show.details, message=FALSE,results="asis", , fig.cap=results_caption, fig.height=2.5}
+tmp = plot_prepost_contrast(fit, the_data, var , my_contrast = "drug")
+tmp$plot
+```
+
+```{r, echo=FALSE,results="asis"}
+tmp$table
+```
+
+```{r, echo = FALSE, results='asis'}
+write_drug_effect(tmp[[2]],var.name)
+```
+
