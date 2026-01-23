@@ -65,8 +65,8 @@ Following files are needed to compile this R Markdown document:
   - `HR.Rdata` (heart rate)
 
 ```{r setup, include=FALSE}
-source("setup.R")
-source("utils.R")
+source("R/setup.R")
+source("R/utils.R")
 LONG_MODE = TRUE
 pd.2 = position_dodge(.2)
 rmd_output = opts_knit$get("rmarkdown.pandoc.to")
@@ -81,6 +81,9 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE,
   eval = TRUE)
+invisible(lapply(c("brmsP1","brmsP1/drug","brmsP1/obtained","brmsP1/Reminder",
+                   "fits","fits/buffer","fits/drug","fits/obtained","fits/Reminder"), 
+                 function(x) if(!dir.exists(x)) dir.create(x)))
 ```
 
 # Prepare data
@@ -4331,7 +4334,7 @@ Back to [Bayesian Ordinal logistic regression (OLR)](#bayesian-ordinal-logistic-
 
 ```{r eval = TRUE}
 cite_packages(
-  path = c("OPIOIDREWARD_WP1.Rmd","buffer.Rmd", "drug_side.Rmd","drug_want_like.Rmd","setup.R","drug56.Rmd","utils.R"),output = "paragraph", out.dir = ".")
+  path = c("OPIOIDREWARD_WP1.Rmd","buffer.Rmd", "drug_side.Rmd","drug_want_like.Rmd","R/setup.R","drug56.Rmd","R/utils.R"),output = "paragraph", out.dir = ".")
 ```
 
 <details>
