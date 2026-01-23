@@ -333,6 +333,8 @@ make_plot_samples = function(fit, dt, outcome.var = NULL) {
     # predict probabilities that response falls into levels of the coarsened outcome variable
     
     var = gsub("\\.c","",outcome.var)
+    if (outcome.var == "effect_obtained.cc") var = gsub("c$","",var)
+    if (outcome.var == "effect_obtained.cn") var = gsub("n$","",var)
     
     tmp = 
       fit %>% 
