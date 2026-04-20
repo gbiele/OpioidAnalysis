@@ -1,10 +1,10 @@
 # Drug wanting and liking 
 
-Here we analyse self-reported drug wanting and liking after the drug administration.
+Here we visualize self-reported drug wanting and liking after each drug administrations.
 
-The data for the second drug administration includes only participants who wanted a second dosage larger than zero.
+The data for the second drug administration include only participants who wanted a second dosage that was larger than zero.
 
-```{r, fig.cap="Drug liking, disliking, and wanting after the administration of the first and second dose."}
+```{r, fig.cap="Mean and 95% CIs for drug liking, disliking, and wanting after the administration of the first and second dose, stratified by drug and state condition."}
 my_data[is.na(satisfact), last.trial := ifelse(time == max(time),TRUE,FALSE), by = .(session, participant)]
 
 my_data_beh = 
@@ -34,7 +34,7 @@ pdata =
 
 pdata %>% 
   ggplot(aes(x = Stage, y = response, ymin=lower, ymax=upper,
-             color = Drug, shape = state.condition), group = state.condition) +
+             color = Drug, shape = state.condition, group = state.condition)) +
   geom_pointrange(size = 1, position = position_dodge(.2)) +
   #geom_vline(xintercept = c(0.75,2.75), lty = 2, alpha = .5) +
   #scale_x_continuous(breaks = c(0.75,2.75), labels = c("dose 1","dose 2")) +  
@@ -42,7 +42,7 @@ pdata %>%
   guides(color=guide_legend(nrow=2,byrow=TRUE),
          shape=guide_legend(nrow=2,byrow=TRUE)) +
   scale_col_drug + 
-  xlab("Time in the experiment") +
+  xlab("Drug administration") +
   facet_wrap(~item_name) +
   theme(legend.position = "bottom") + 
   theme(axis.line = element_line())

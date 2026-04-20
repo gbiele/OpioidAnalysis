@@ -3,11 +3,11 @@
 var.name = var.names[var]
 show.details = ifelse(var == vars[1],TRUE,FALSE)
 cat(paste("###", stringr::str_to_title(var.name), "ratings\n"))
-cat(paste("Here is a plot of",var.name,", measured as the difference between the oxycodone and placebo conditions, dependent on sex.\n"))
-base_caption_contrast = "The figure shows Left: MYVAR by sex. Top right: MYVAR by stress condition. Note that MYVAR is the difference in MYVAR between the ocycodone and placebo conditions. Bottom right, clockwise from top left: Sex differences in MYVAR, stress effect on MYVAR, sex difference in MYVAR in the stress condition, sex difference in MYVAR in the control condition (for stress). Bottom right: Difference between the sex differences in MYVAR between the control and stress condition.\n\n"
+cat(paste0("Here is a plot of ",var.name,", measured as the difference between the oxycodone and placebo conditions, dependent on sex.\n"))
+base_caption_contrast = "Top left: MYVAR by sex. Top right: MYVAR by stress condition. Note that MYVAR is the difference in MYVAR between the ocycodone and placebo conditions. Bottom right, clockwise from top left: Sex differences in MYVAR, stress effect on MYVAR, sex difference in MYVAR in the stress condition, sex difference in MYVAR in the control condition (for stress). Bottom right: Difference between the sex differences in MYVAR between the control and stress condition.\n\n"
 my_caption_contrast = gsub("MYVAR",gsub("_"," ",var.name),base_caption_contrast)
-my_caption_lines = paste(var.name, "stratified by stress condition and sex. Drug liking is measured as the slope of the lines from placebo to ocxcodone. Each line represents one participant.)")
-my_caption_density = paste("Distribution of",var.name,"effects, stratified by stress condition (in panles) and sex (in colors).)")
+my_caption_lines = paste(stringr::str_to_sentence(var.name), "after the first drug administration, stratified by stress condition and sex.", stringr::str_to_sentence(var.name), "is measured as the slope of the lines from placebo to ocxcodone. Each line represents one participant.")
+my_caption_density = paste("Distribution of differences in",var.name,"ratings after the first drug administration between the oxycodone and placebo conditions, stratified by stress condition (panels) and sex (colors).")
 ```
 
 
@@ -18,8 +18,6 @@ if (var == "pos_affect") the_data = my_data.Q.drug56[item_name %in% posaffect_it
 if (var == "neg_affect") the_data = my_data.Q.drug56[item_name %in% negaffect_items]
 the_data %>% plot_drug_lines()
 ```
-
-We can again summarize the data by plotting the distribution of the difference in liking between drug conditions.
 
 ```{r, fig.height=3, fig.cap=my_caption_density, echo=show.details}
 p = plot_drug(the_data)
@@ -34,7 +32,7 @@ raw_contrasts.drug =
 #       raw_contrasts.drug,
 #       plot_drug(the_data)$data[, .(participant, Sex, drug_effect, state.condition)][, Outcome := var]
 #     )
-p
+p+ggtitle(paste0("Oxycodone effect on '", gsub("_"," ",var), "' rating"))+xlab("Oxycodone effect: oxycodone (post) - placebo (post)")
 ```
 
 ```{r, results='asis', echo = FALSE, eval=show.details}
@@ -65,6 +63,10 @@ if (file.exists(fn)) {
 #pp_check(fit, ndraws = 2000, type = "bars")
 ```
 
+```{r}
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+```
+
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.1 and the effect sample size (ess) should be larger than 500.", fig.height=3}
 sample_diags = fit %>% model_summary()
 sample_diags$plot
@@ -72,14 +74,14 @@ sample_diags$plot
 
 ```{r results='asis', echo = FALSE}
 if (rmd_output == "html") {
-  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat("<details> \n <summary>Click to show a table with the complete sample diagnostics.</summary>")
   cat(sample_diags$table)
   cat("</details> \n <br>")
 }
 ```
 
 ```{r, results='asis', echo = FALSE, eval=show.details}
-cat("For the following results we calculate the effect of stress on drug liking as `liking_in_oxycodone - liking_in_placebo`, so that positive numbers mean that liking is greater in the stress condition.\n\nHere are the estimated responses in the 'cells' of the design, stratified by sex:")
+cat(paste0("For the following results we calculate the effect of stress on ", var.name, " as `", var.name, "_in_oxycodone - ", var.name, "_in_placebo`, so that positive numbers indicate that ", var.name, " is greater in the stress condition.\n\nHere are the estimated responses in the 'cells' of the design, stratified by sex:"))
 ```
 
 
@@ -95,7 +97,7 @@ attr(post.contrasts,"cell_stats") %>%
 
 
 ```{r, fig.height=6, fig.cap=my_caption_contrast}
-drug_plotter(post.contrasts)
+drug_plotter(post.contrasts, ox=gsub("_"," ",var))
 ```
 
 ```{r}

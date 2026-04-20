@@ -1,0 +1,97 @@
+
+@ARTICLE{Carpenter2017-sa,
+title = "{Stan: A Probabilistic Programming Language}",
+author = "Carpenter, Bob and Gelman, Andrew and Hoffman, Matthew D and Lee, Daniel and Goodrich, Ben and Betancourt, Michael and Brubaker, Marcus A and Guo, Jiqiang and Li, Peter and Riddell, Allen",
+abstract = "Stan is a probabilistic programming language for specifying statistical models. A Stan program imperatively defines a log probability function over parameters conditioned on specified data and constants. As of version 2.14.0, Stan provides full Bayesian inference for continuous-variable models through Markov chain Monte Carlo methods such as the No-U-Turn sampler, an adaptive form of Hamiltonian Monte Carlo sampling. Penalized maximum likelihood estimates are calculated using optimization methods such as the limited memory Broyden-Fletcher-Goldfarb-Shanno algorithm. Stan is also a platform for computing log densities and their gradients and Hessians, which can be used in alternative algorithms such as variational Bayes, expectation propagation, and marginal inference using approximate integration. To this end, Stan is set up so that the densities, gradients, and Hessians, along with intermediate quantities of the algorithm such as acceptance probabilities, are easily accessible. Stan can be called from the command line using the cmdstan package, through R using the rstan package, and through Python using the pystan package. All three interfaces support sampling and optimization-based inference with diagnostics and posterior analysis. rstan and pystan also provide access to log probabilities, gradients, Hessians, parameter transforms, and specialized plotting.",
+journal = "Journal of statistical software",
+volume =  76,
+month =  jan,
+year =  2017,
+url = "http://dx.doi.org/10.18637/jss.v076.i01",
+keywords = "Bayesian inference; Stan; algorithmic differentiation; probabilistic program",
+language = "en",
+issn = "1548-7660",
+pmid = "36568334",
+doi = "10.18637/jss.v076.i01",
+pmc = "PMC9788645"
+}
+
+@ARTICLE{Burkner2017-ck,
+title = "{brms: An R Package for Bayesian Multilevel Models Using Stan}",
+author = "B{\"u}rkner, Paul-Christian",
+abstract = "The brms package implements Bayesian multilevel models in R using the probabilistic programming language Stan. A wide range of distributions and link functions are supported, allowing users to fit - among others - linear, robust linear, binomial, Poisson, survival, ordinal, zero-inflated, hurdle, and even non-linear models all in a multilevel context. Further modeling options include autocorrelation of the response variable, user defined covariance structures, censored data, as well as meta-analytic standard errors. Prior specifications are flexible and explicitly encourage users to apply prior distributions that actually reflect their beliefs. In addition, model fit can easily be assessed and compared with the Watanabe-Akaike information criterion and leave-one-out cross-validation.",
+journal = "Journal of statistical software",
+volume =  80,
+pages = "1-28",
+month =  aug,
+year =  2017,
+url = "https://www.jstatsoft.org/v80/i01/",
+keywords = "Bayesian inference; multilevel model; ordinal data; MCMC; Stan; R",
+language = "en",
+issn = "1548-7660, 1548-7660",
+doi = "10.18637/jss.v080.i01"
+}
+
+@ARTICLE{Manuguerra2010-hn,
+title = "{Ordinal regression models for continuous scales}",
+author = "Manuguerra, Maurizio and Heller, Gillian Z",
+abstract = "Ordinal regression analysis is a convenient tool for analyzing ordinal response variables in the presence of covariates. In this paper we extend this methodology to the case of continuous self-rating scales such as the Visual Analog Scale (VAS) used in pain assessment, or the Linear Analog Self-Assessment (LASA) scales in quality of life studies. These scales measure subjects' perception of an intangible quantity, and cannot be handled as ratio variables because of their inherent nonlinearity. We express the likelihood in terms of a function connecting the scale with an underlying continuous latent variable and approximate this function either parametrically or non-parametrically. Then a general semi-parametric regression framework for continuous scales is developed. Two data sets have been analyzed to compare our method to the standard discrete ordinal regression model, and the parametric to the non-parametric versions of the model. The first data set uses VAS data from a study on the efficacy of low-level laser therapy in the treatment of chronic neck pain; the second comes from a study on chemotherapy treatments in advanced breast cancer and looks at the impact of different drugs on patients' quality of life. The continuous formulation of the ordinal regression model has the advantage of no loss of precision due to categorization of the scores and no arbitrary choice of the number and boundaries of categories. The semi-parametric form of the model makes it a flexible method for analysis of continuous ordinal scales.",
+journal = "The international journal of biostatistics",
+volume =  6,
+number =  1,
+pages = "Article 14",
+year =  2010,
+url = "http://dx.doi.org/10.2202/1557-4679.1230",
+language = "en",
+issn = "1557-4679",
+pmid = "21969972",
+doi = "10.2202/1557-4679.1230"
+}
+
+@ARTICLE{Manuguerra2020-ro,
+title = "{Continuous Ordinal Regression for Analysis of Visual Analogue Scales: The R Package ordinalCont}",
+author = "Manuguerra, Maurizio and Heller, Gillian Z and Ma, Jun",
+abstract = "This paper introduces the R package ordinalCont, which implements an ordinal regression framework for response variables which are recorded on a visual analogue scale (VAS). This scale is used when recording subjects' perception of an intangible quantity such as pain, anxiety or quality of life, and consists of a mark made on a linear scale. We implement continuous ordinal regression models for VAS as the appropriate method of analysis for such responses, and introduce smoothing terms and random effects in the linear predictor. The model parameters are estimated using constrained optimization of the penalized likelihood and the penalty parameters are automatically selected via maximization of their marginal likelihood. The estimation algorithm is shown to perform well, in a simulation study. Two examples of application are given: the first involves the analysis of pain outcomes in a clinical trial for laser treatment for chronic neck pain; the second is an analysis of quality of life outcomes in a clinical trial for chemotherapy for the treatment of breast cancer.",
+journal = "Journal of statistical software",
+volume =  96,
+pages = "1-25",
+month =  dec,
+year =  2020,
+url = "https://www.jstatsoft.org/article/view/v096i08",
+keywords = "continuous ordinal regression; visual analogue scale; maximum penalized likelihood; splines; R",
+language = "en",
+issn = "1548-7660, 1548-7660",
+doi = "10.18637/jss.v096.i08"
+}
+
+
+@ARTICLE{Vehtari2020-fj,
+title = "{Rank-Normalization, Folding, and Localization: An Improved $\widehat\{R\}$ for Assessing Convergence of MCMC}",
+author = "Vehtari, Aki and Gelman, Andrew and Simpson, Daniel and Carpenter, Bob and B{\"u}rkner, Paul-Christian",
+abstract = "Project Euclid - mathematics and statistics online",
+journal = "Bayesian analysis",
+publisher = "International Society for Bayesian Analysis",
+year =  2020,
+url = "https://projecteuclid.org/euclid.ba/1593828229",
+language = "en",
+issn = "1936-0975, 1931-6690",
+doi = "10.1214/20-BA1221"
+}
+
+
+@Manual{RHRV-2022,
+    title = {RHRV: Heart Rate Variability Analysis of ECG Data},
+    author = {Leandro Rodriguez-Linares and Xose Vila and Maria Jose Lado and Arturo Mendez and Abraham Otero and Constantino Antonio Garcia},
+    year = {2022},
+    note = {R package version 4.2.7},
+    url = {https://CRAN.R-project.org/package=RHRV},
+  }
+
+
+@Book{MGCV-2017,
+  title = {Generalized Additive Models: An Introduction with R},
+  year = {2017},
+  author = {S.N Wood},
+  edition = {2},
+  publisher = {Chapman and Hall/CRC},
+}

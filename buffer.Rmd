@@ -1,8 +1,10 @@
 # Buffering of stress reinstatement
 
-Here we analyse if Drug reduces stress-reinstatement induced negative emotions.
+The manipulation checks showed that that the stress effects of the first reminder were clearer, especially for feeling stressed. Therefore, the analysis of buffer effects focuses on the first reminder.
 
-Prepare the data:
+Here we investigate whether oxycodone reduces negative affective states induced by the 1st stress reminder (or *reinstatement*).
+
+First we prepare the data:
 
 ```{r}
 my_data.Q_buffer = 
@@ -28,7 +30,7 @@ my_data.Q_buffer =
 
 Here is a plot of the raw data.
 
-```{r, fig.cap="Mean ratings for stress, embarrassment and selfconciousness pre and post reminders by drug, state condition and sex.", fig.height=15}
+```{r, fig.cap="Mean ratings and 95% confidence intervals for stress, embarrassment and self-conciousness pre and post 1st reminder by drug, state condition and sex.", fig.height=15}
 my_data.Q_buffer_stats = 
   my_data.Q_buffer %>% 
   .[, .(response = mean(response),
@@ -49,7 +51,7 @@ my_data.Q_buffer_stats %>%
   scale_col_drug
 ```
 
-```{r, fig.cap="Effect of stress reminders in the raw data measured after drug adminstration. Reminder effects are calculated as the change in stress ratings from pre to post stress induction and drug administration.", fig.height=15}
+```{r, fig.cap="Mean and 95% confidence interval for stress reminder effect, defned as the difference in the change in post-drug ratings from pre to post 1st reminder between the stressful and the control reminders. Stratified by drug condition (colors) and sex (panels). Note that these are calculated from the raw data.", fig.height=15, results='hide',fig.keep='all'}
 pdata = 
   my_data.Q_buffer %>% 
   # average the pre stages BL1, BL2, BL3
@@ -77,12 +79,12 @@ pdata.stats %>%
   geom_bar(stat = "identity", alpha = .5) + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .25, linewidth = 1) + 
   facet_grid(item_name~Sex) + 
-  geom_quasirandom(data = pdata, aes(color = Drug)) +
+  geom_quasirandom(data = pdata, aes(color = Drug), na.rm=TRUE) +
   scale_col_drug +
-  ylim(-50,50)
+  coord_cartesian(ylim=c(-50,50))+ylab("Stress effect")
 ```
 
-```{r, fig.cap="Distribution of the interaction of stress effect (pre-post reminder) with drug condition (directly calculated from the data)."}
+```{r, fig.cap="Distribution of the difference in stress reminder effect between drug conditions, stratified by sex. Note that these are calculated from the raw data"}
 pdata %>% 
   .[, stress_effect := stress - control] %>% 
   # calculate drug x stress interaction effect as difference of stress effects between drug conditions
@@ -91,36 +93,37 @@ pdata %>%
   ggplot(aes(x = stress_x_drug, fill=Sex)) + 
   geom_histogram(alpha = .5, position = "identity", bins = 20) + 
   scale_col_sex + 
-  facet_wrap(~item_name)
+  facet_wrap(~item_name)+
+  xlab("Stress*Drug interaction")
 ```
 
 ## Analysis approach
 
 
-The analysis approach here is that we get posterior distributions for the ratings in the 8 cells obtained by crossing:
+The general approach for the analyses below is to first obtain posterior distributions for the ratings in the 8 cells obtained by crossing:
 
 -   stress vs control
 -   pre vs post reminder
--   drug vs placebo
+-   oxycodone vs placebo
 -   men vs women
 
-Then we can calculate the desired contrasts by first calculating the pre to post change for 4 conditions from stress x drug. 
+Then we can calculate the desired contrasts by calculating the pre to post change for the following 4 conditions from crossing stress with drug. 
 
 - `pre_post_placebo_control = Drugplacebo:Stresscontrol:reminderpre - Drugplacebo:Stresscontrol:reminderpost` 
 - `pre_post_placebo_stress = Drugplacebo:Stressstress:reminderpre - Drugplacebo:Stressstress:reminderpost` 
-- `pre_post_drug_control = Drugdrug:Stresscontrol:reminderpre - Drugdug:Stresscontrol:reminderpost` 
-- `pre_post_drug_stress = Drugdrug:Stressstress:reminderpre - Drugdrug:Stressstress:reminderpost`
+- `pre_post_oxycodone_control = Drugoxycodone:Stresscontrol:reminderpre - Drugoxycodone:Stresscontrol:reminderpost` 
+- `pre_post_oxycodone_stress = Drugoxycodone:Stressstress:reminderpre - Drugoxycodone:Stressstress:reminderpost`
 
-With those, we can calculate the stress reminder effects in the drug and placebo condition
+With those, we can calculate the stress reminder effects in the drug and placebo condition:
 
 -   `stress_effect_placebo = pre_post_placebo_stress - pre_post_placebo_control`
--   `stress_effect_drug = pre_post_drug_stress - pre_post_drug_control`
+-   `stress_effect_oxycodone = pre_post_oxycodone_stress - pre_post_oxycodone_control`
 
-And finally we can calculate if the stress-reminder effect is smaller in the the placebo compared to the placebo condition
+Finally, we can calculate whether the stress-reminder effect is smaller in the the oxycodone compared to the placebo condition:
 
--   `stress_x_drug = stress_effect_drug - stress_effect_placebo`
+-   `stress_x_oxycodone = stress_effect_oxycodone - stress_effect_placebo`
 
-This description does not include sex effects, but these effects can be calculates separately by sex.
+This description does not include sex effects, but the above contrasts can be calculated separately by sex.
 
 *Note that given this specification of the contrasts, a buffer effect where post-reminder ratings of negative items like stress are lower under oxycodone compared to placebo will result in negative values for the stress_x_drug interaction effect.*
 
@@ -133,11 +136,9 @@ analysis_formula =
                (1 + Drug:Stress:reminder | participant) 
 ```
 
-The analysis for manipulation checks showed that that the stress effects of the first reminder were clearer, especially for feeling stressed. Therefore, the analysis of buffer effects focuses on the first reminder.
-
 ## Buffering of stress
 
-We focus on buffering of stress for the first reminder.
+We focus on buffering of stress from the first reminder.
 
 ```{r est_buffer_stress1}
 f = "fits/buffer/stressed.Rdata"
@@ -150,29 +151,33 @@ if (file.exists(f)) {
 }
 ```
 
-```{r, fig.cap = "Summary of fit indicators. rhat should be smaller than 1.1 and effect sample size (ess) should be larger than 500.", fig.height=3}
+```{r}
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
 sample_diags = fit %>% model_summary()
 sample_diags$plot
 ```
 
 ```{r results='asis', echo = FALSE}
 if (rmd_output == "html") {
-  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat("<details> \n <summary>Click to show a table with the complete sample diagnostics.</summary>")
   cat(sample_diags$table)
   cat("</details> \n <br>")
 }
 ```
 
 
-```{r, fig.cap="Posterior predictive check of pre-post differences. Points are differences directly calculate from the data, intervals show differences calculate from model parameters."}
+```{r, fig.cap="Posterior predictive check of pre-post differences. Points are differences directly calculated from the data, intervals show differences calculated from model parameters."}
 p = plot_buffer_effect(fit,the_data,"stressed")
 p$ppc
 ```
 
 
-The following figure shows stress-drug interactions (negative values indicate a buffering effect). The data support a hypothesis of no effect of oxycodone on stress response if the credible interval falls in a region of practical equivalence of +/- 5 points.
+The following figure shows stress-drug interactions (negative values indicate a buffering effect). The data support a hypothesis of no effect of oxycodone on the stress response to the reminder if the credible interval falls within a region of practical equivalence of +/- 5 points.
 
-```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'stressed' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) on 'stressed' ratings with drug condition. Dashed vertical lines enclode a region of practical equivalence."}
+```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'stressed' ratings by state, drug and sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) on 'stressed' ratings with drug condition. Dashed vertical lines indicate a region of practical equivalence."}
 ((p$stress.plot + 
     ylab("stress effect on 'stressed' ratings.")) | p$buffer.plot) + 
   plot_annotation(tag_levels = "A") + 
@@ -196,26 +201,30 @@ if (file.exists(f)) {
 }
 ```
 
-```{r, fig.cap = "Summary of fit indicators. rhat should be smaller than 1.1 and effect sample size (ess) should be larger than 500.", fig.height=3}
+```{r}
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
 sample_diags = fit %>% model_summary()
 sample_diags$plot
 ```
 
 ```{r results='asis', echo = FALSE}
 if (rmd_output == "html") {
-  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat("<details> \n <summary>Click to show a table with the complete sample diagnostics.</summary>")
   cat(sample_diags$table)
   cat("</details> \n <br>")
 }
 ```
 
 
-```{r, fig.cap="Posterior predictive check of pre-post differences. Points are differences directly calculate from the data, intervals show differences calculate from model parameters."}
+```{r, fig.cap="Posterior predictive check of pre-post differences. Points are differences directly calculated from the data, intervals show differences calculated from model parameters."}
 p = plot_buffer_effect(fit,the_data,"embarassed")
 p$ppc
 ```
 
-```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'embarrassed' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) on 'embarrassed' ratings with drug condition. Dashed vertical lines enclode a region of practical equivalence."}
+```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'embarrassed' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) on 'embarrassed' ratings with drug condition. Dashed vertical lines indicate a region of practical equivalence."}
 ((p$stress.plot + 
     ylab("stress effect on 'embarrassed' ratings.")) | p$buffer.plot) + 
   plot_annotation(tag_levels = "A") + 
@@ -226,7 +235,7 @@ p$buffer.stats %>%
 ```
 
 
-## Buffering of selfconciousness
+## Buffering of self-conciousness
 
 ```{r est_buffer_selfcn}
 f = "fits/buffer/selfcn.Rdata"
@@ -239,25 +248,29 @@ if (file.exists(f)) {
 }
 ```
 
-```{r, fig.cap = "Summary of fit indicators. rhat should be smaller than 1.1 and effect sample size (ess) should be larger than 500.", fig.height=3}
+```{r}
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
 sample_diags = fit %>% model_summary()
 sample_diags$plot
 ```
 
 ```{r results='asis', echo = FALSE}
 if (rmd_output == "html") {
-  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat("<details> \n <summary>Click to show a table with the complete sample diagnostics.</summary>")
   cat(sample_diags$table)
   cat("</details> \n <br>")
 }
 ```
 
-```{r, fig.cap="Posterior predictive check of pre-post differences. Points are differences directly calculate from the data, intervals show differences calculate from model parameters."}
+```{r, fig.cap="Posterior predictive check of pre-post differences. Points are differences directly calculated from the data, intervals show differences calculated from model parameters."}
 p = plot_buffer_effect(fit,the_data,"selfconscious")
 p$ppc
 ```
 
-```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'selfconscious' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) on 'selfconscious' ratings with drug condition. Dashed vertical lines enclode a region of practical equivalence."}
+```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'selfconscious' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) on 'selfconscious' ratings with drug condition. Dashed vertical lines indicate a region of practical equivalence."}
 ((p$stress.plot + 
     ylab("stress effect on 'selfconscious' ratings.")) | p$buffer.plot) + 
   plot_annotation(tag_levels = "A") + 
@@ -269,7 +282,7 @@ p$buffer.stats %>%
 
 ## Buffering of stress, embarrassement & selfconciousness
 
-Given that the data patterns for these three items are expected to be similar, we can obtain more stable estimates of a buffer effect by modeling all items jointly.
+Given that the response pattern for these three items is expected to be similar, we can obtain more stable estimates of a buffer effect by modeling all items jointly.
 
 ```{r est_buffer_embselfstr"}
 f = "fits/buffer/embselfstress.Rdata"
@@ -284,20 +297,24 @@ if (file.exists(f)) {
 }
 ```
 
-```{r, fig.cap = "Summary of fit indicators. rhat should be smaller than 1.1 and effect sample size (ess) should be larger than 500.", fig.height=3}
+```{r}
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
 sample_diags = fit %>% model_summary()
 sample_diags$plot
 ```
 
 ```{r results='asis', echo = FALSE}
 if (rmd_output == "html") {
-  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat("<details> \n <summary>Click to show a table with the complete sample diagnostics.</summary>")
   cat(sample_diags$table)
   cat("</details> \n <br>")
 }
 ```
 
-```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'stressed', 'selfconscious' and 'embarrased' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) ratings with drug condition. Dashed vertical lines enclode a region of practical equivalence."}
+```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'stressed', 'selfconscious' and 'embarrased' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) ratings with drug condition. Dashed vertical lines indicate a region of practical equivalence."}
 p = plot_buffer_effect(fit,the_data,"stress_emb_selfc")
 ((p$stress.plot + 
     ylab("stress effect on 'stressed', 'emb.' & 'selfc.' ratings.")) | p$buffer.plot) + 
@@ -322,21 +339,25 @@ if (file.exists(f)) {
 }
 ```
 
-```{r, fig.cap = "Summary of fit indicators. rhat should be smaller than 1.1 and effect sample size (ess) should be larger than 500.", fig.height=3}
+```{r}
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
 sample_diags = fit %>% model_summary()
 sample_diags$plot
 ```
 
 ```{r results='asis', echo = FALSE}
 if (rmd_output == "html") {
-  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat("<details> \n <summary>Click to show a table with the complete sample diagnostics.</summary>")
   cat(sample_diags$table)
   cat("</details> \n <br>")
 }
 ```
 
 
-```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'negative mood', 'selfconscious' and 'embarrased' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) ratings with drug condition. Dashed vertical lines enclode a region of practical equivalence."}
+```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'negative mood' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) ratings with drug condition. Dashed vertical lines indicate a region of practical equivalence."}
 p = plot_buffer_effect(fit,the_data,"negaffect")
 ((p$stress.plot + 
     ylab("stress effect on negative mood ratings")) | p$buffer.plot) + 
@@ -362,20 +383,24 @@ if (file.exists(f)) {
 }
 ```
 
-```{r, fig.cap = "Summary of fit indicators. rhat should be smaller than 1.1 and effect sample size (ess) should be larger than 500.", fig.height=3}
+```{r}
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
 sample_diags = fit %>% model_summary()
 sample_diags$plot
 ```
 
 ```{r results='asis', echo = FALSE}
 if (rmd_output == "html") {
-  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat("<details> \n <summary>Click to show a table with the complete sample diagnostics.</summary>")
   cat(sample_diags$table)
   cat("</details> \n <br>")
 }
 ```
 
-```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'negative mood', 'selfconscious' and 'embarrased' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) ratings with drug condition. Dashed vertical lines enclode a region of practical equivalence."}
+```{r fig.width = 8, fig.cap = "A: Model-predicted effects of the first stress reminder on 'positive mood' ratings by state Drug and Sex. Points and lines are means and 66 & 95% Credible intervals. B: Posterior distribution of the interaction of stress effect (pre-post reminder) ratings with drug condition. Dashed vertical lines indicate a region of practical equivalence."}
 p = plot_buffer_effect(fit,the_data,"posaffect")
 ((p$stress.plot + 
     ylab("stress effect on negative mood ratings")) | p$buffer.plot) + 
