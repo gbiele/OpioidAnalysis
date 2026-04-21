@@ -1,0 +1,712 @@
+---
+title: 'Excerpt: OLR obtained and stated desired effect (from full report)'
+author: ""
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+ # bookdown::word_document2:
+ #   toc: true
+ #   code_folding: hide
+ bookdown::html_document2:
+   toc: true
+   toc_float:
+     collapsed: true
+     smooth_scroll: true
+   code_folding: hide
+always_allow_html: true
+bibliography: references.bib
+---
+
+This document is a **trimmed excerpt** of the full replication report. It keeps only the data preparation needed for three analyses—adjacent-category OLR for *effect obtained* (with prior sensitivity), sex-stratified OLR for *effect obtained*, and stated *desired* effect—and drops the rest of the manuscript (other outcomes, time courses, extensive QC tables, sensitivity adjustments, etc.).
+
+For preregistration context, full descriptives, other models, and appendices, see the complete source: [OPIOIDREWARD_WP1.Rmd](OPIOIDREWARD_WP1.Rmd).
+
+```{css, echo = F}
+<!-- #TOC { -->
+<!--   position: fixed; -->
+<!--   left: 0; -->
+<!--   top: 0; -->
+<!--   width: 400px; -->
+<!--   height: 100%; -->
+<!--   overflow:auto; -->
+<!-- } -->
+
+
+.sidenote, .marginnote {
+  float: right;
+  clear: right;
+  margin-right: 0#-50%;
+  width: 40%;         # best between 50% and 60%
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 2;
+  font-size: 1.8rem;
+  vertical-align: baseline;
+  position: relative;
+  }
+```
+```{r setup, include=FALSE}
+source("R/setup.R")
+source("R/utils.R")
+LONG_MODE = FALSE
+pd.2 = position_dodge(.2)
+rmd_output = opts_knit$get("rmarkdown.pandoc.to")
+if (is.null(rmd_output)) rmd_output = "html"
+if (!is.null(rmd_output))
+  if (rmd_output == "docx") {
+    theme_update(text = element_text(size = 10)) 
+    knitr::opts_chunk$set(dpi=150,fig.width=7)
+  }
+knitr::opts_chunk$set(
+  echo = ifelse(rmd_output == "html",TRUE,FALSE),
+  warning = FALSE,
+  message = FALSE,
+  eval = TRUE)
+```
+
+```{r ensure_dirs, include=FALSE}
+dir.create("brmsP1/obtained", recursive = TRUE, showWarnings = FALSE)
+dir.create("figures", recursive = TRUE, showWarnings = FALSE)
+```
+
+# Opioid self-administration: statistical excerpt
+
+## Data preparation
+
+The chunks below match the full report's pipeline up to coarsening of *effect obtained* (oxycodone sessions only). For narrative around exclusions and compliance, see [OPIOIDREWARD_WP1.Rmd](OPIOIDREWARD_WP1.Rmd).
+
+### Load and prepare raw tables
+
+```{r load_data, eval = TRUE}
+load("data/my_data_Questionnaire.Rdata")
+my_data.Q = my_data
+my_data.Q[item_name == "dull", item_name := "blunted"]
+my_data.Q[participant == 22 & session == 1, Drug := "oxycodone"]
+
+load("data/my_data_cortisol.Rdata")
+my_data.cortisol = 
+  my_data %>% 
+  .[, result := result*100*0.0001] %>% 
+  .[, log.result := log(result)] %>% 
+  .[participant %in% unique(my_data$participant)]
+my_data.cortisol[participant == 22 & session == 1, Drug := "oxycodone"]
+
+load("data/my_data_SelfAdmin.Rdata")
+my_data[participant == 22 & session == 1, Drug := "oxycodone"]
+my_data = my_data
+
+stage.names = c("BL 1", "BL 2", "BL 3", "state induction", "dose 1" , 
+           "reminder 1", "self- admin", "reminder 2", "DM task",
+           "cognitive task", "dose 2") %>% gsub(" ","\n",.)
+my_data[, state.condition := ifelse(Stress == "stress", "stress", "control")] %>% 
+  .[, Sex := ifelse(gender == "m","men","women")] 
+my_data.Q[, state.condition := ifelse(Stress == "stress", "stress", "control")] %>% 
+  .[, Sex := ifelse(gender == "m","men","women")] %>% 
+  .[, induced.state := ifelse(Stress == "stress" & stage > 3, "stress", "control")] %>% 
+  .[, Stage := factor(stage.names[stage], levels = stage.names)]
+```
+### Self-administration summaries used downstream
+
+```{r}
+# Calculate first time at target for self administration task.
+my_data %>% 
+  .[, first.time.target := 1e5 + 0.1] %>% 
+  .[, `:=`(first.time.target = 
+            get_ftt(effect_obtained,target, time, bias),
+          mean.delta_effect_obtained = mean(abs(effect_obtained-target))),
+        by = .(participant,session)]
+```
+## Exclusions based on ratings
+
+As predefined in the preregistration, we assessed whether there were any participants who reported neither an increase in negative affect nor a decrease in positive affect following the stress induction (in which case they would be excluded from the analysis).
+
+```{r, class.source = 'fold-show'}
+negaffect_items = c("distressed","anxious","vulnerable","irritable") 
+posaffect_items = c("good", "happy", "confident", "safe", "relaxed")
+embselfcn_items = c("embarassed","selfconscious")
+sideffect_items = c("dizzy","dry_mouth", "blunted", "nauseous","warm_face","not_myself") 
+```
+
+```{r, fig.cap="Max changes in self-reported negative and positive items from pre to post state induction."}
+# maximum change in any of the negative emotion items
+my_data.negaffect = 
+  my_data.Q[!(participant == 22 & session == 1)] %>% 
+  .[stage %in% c(3,4) & item_name %in% negaffect_items & state.condition == "stress" & Drug == "oxycodone", 
+    .(participant, item_name, response, stage, Sex)] %>% 
+  dcast( participant + item_name + Sex ~ stage, value.var = "response") %>% 
+  .[, delta := `4` - `3`] %>% 
+  .[, .(max.neg_incr = max(delta)), by = .(participant, Sex)]
+
+# maximum change in any of the positive emotion items
+my_data.posaffect = 
+  my_data.Q[!(participant == 22 & session == 1)] %>% 
+  .[stage %in% c(3,4) & item_name %in% posaffect_items & state.condition == "stress" & Drug == "oxycodone", 
+    .(participant, item_name, response, stage, Sex)] %>% 
+  dcast( participant + item_name + Sex ~ stage, value.var = "response") %>% 
+  .[, delta := `4` - `3`] %>% 
+  .[, .(max.pos_decr = min(delta)), by = .(participant, Sex)]
+
+my_data.posng_change = 
+  merge(my_data.negaffect,
+        my_data.posaffect,
+        by = c("participant","Sex")) %>% 
+  setkeyv(c("participant")) %>% 
+  .[, stress.filter := ifelse(max.neg_incr <= 0 & max.pos_decr >= 0,1,0)]
+
+my_data.posng_change %>% 
+  ggplot(aes(x = max.neg_incr, y = max.pos_decr, color = Sex, label = participant)) + 
+  geom_text() + 
+  theme(legend.position = "right") +
+  scale_col_sex +
+  ylab("Maximum rating increase for negative emotion items") +
+  xlab("Maximum rating decrease for positive emotion items")
+```
+
+```{r, results='asis', echo = FALSE}
+cat(paste(sum(my_data.posng_change$stress.filter==1),
+          "participants had to be excluded due to insensitivity to the state induction."))
+```
+
+```{r}
+my_data %>% 
+  .[my_data.posng_change, stress.filter := stress.filter] 
+my_data = my_data[stress.filter == 0]
+
+my_data.Q_keys = key(my_data.Q)
+my_data.Q %>% 
+  setkeyv(c("participant")) %>% 
+  .[my_data.posng_change, stress.filter := stress.filter] %>%  
+  setkeyv(my_data.Q_keys)
+my_data.Q = my_data.Q[stress.filter == 0]
+
+rm(my_data.posaffect,my_data.posng_change, my_data.negaffect)
+```
+## Self-adminsitration task compliance \label{cheaters}
+
+As specified in the preregistration, we checked whether participants actually worked to obtain the stated desired effect (first part of the self-administration task). Participants who ended up at more than 50 points (of 125) away from the their declared goal were considered to *not have followed task instructions.* 
+Data from these sessions were excluded from the analysis of desired drug effect collected before the behavioral part of the drug self-administration task as this discrepancy in behavior indicated that they “actually”, or in the end, desired a different amount than disclosed. Their self-administration data was included in the main behavioral analysis.
+```{r}
+my_data %>% 
+  .[, delta_target := abs(tail(effect_obtained,1) - target[1]), by = .(participant, session)] %>% 
+  .[, cheater := delta_target > 50]
+
+tmp = 
+  my_data[, .(participant,state.condition,session,Drug, cheater)] %>% 
+  unique()
+
+cheaters = 
+  tmp %>% 
+  .[cheater == TRUE] %>% 
+  unique() %>% 
+  .[, session := factor(session)] 
+
+cheaters  %>% 
+  copy() %>% 
+  setnames(c("cheater"),c("failed to follow instructions")) %>% 
+  .[Drug == "oxycodone"] %>% 
+  my_flextable(caption = "Participants who failed to follow instructions in Oxycodone sessions.",
+               footnote = paste("Note: In",tmp[Drug == "placebo" & cheater == TRUE] %>% nrow(),"of the placebo sessions a participant ignored the instructions.")) 
+```
+```{r results='asis', echo=FALSE}
+cat(
+  paste0(
+    "In ",
+    nrow(cheaters[Drug == "oxycodone"]),
+    " of the (",my_data[Drug == "oxycodone", .(participant,session)] %>% unique() %>% nrow(),
+    ") oxycodone sessions the obtained effect was more than 50 points away from the target. Altogether ",
+    cheaters[Drug == "oxycodone",participant] %>% unique() %>% length(),
+    " participants contributed to such sessions. In ",
+    tmp[Drug == "placebo" & cheater == TRUE] %>% nrow(),
+    " of the placebo sessions a participant failed to follow the instructions.\n"
+  )
+)
+```
+
+```{r, echo = FALSE}
+tmp %>% 
+  .[, .(n = sum(!cheater), p = mean(!cheater)), 
+    by = .(Drug, state.condition)] %>%
+  .[, N := paste0(n, " (", round(p*100),"%)")] %>% 
+  dcast(Drug ~ state.condition, value.var = "N") %>% 
+  my_flextable(
+    caption = "Sample size for analyses of the desired drug effect after removal of participants who did not follow instructions",
+    footnote = "The number in parentheses indicates the percentage of participant who followed instructions.")
+```
+
+### Effect obtained (oxycodone path)
+
+Session-level self-admin data and dosage merge (same code as the full report).
+
+```{r EffectObtained, eval=TRUE}
+my_data[is.na(satisfact), last.trial := ifelse(time == max(time),TRUE,FALSE), by = .(session, participant)]
+
+my_data_beh = 
+  my_data[last.trial == TRUE & is.na(satisfact)] %>% 
+  .[, stage := 0] %>% 
+  .[, N.oxy := sum(Drug == "oxycodone"), by = .(participant)] %>% 
+  .[N.oxy > 1] 
+
+load("data/dosage_data.Rdata")
+dosage_data %>% 
+  .[, session := as.integer(session)] %>% 
+  .[, weight_kg := as.numeric(gsub(",",".",weight_kg))]
+
+for (v in c("weight_kg","drug_1_dose","drug_2_dose"))
+  dosage_data[, (v) := as.numeric(gsub(",",".",get(v)))]
+
+drug_feel = 
+  my_data.Q %>% 
+  .[item_name == "drug_feel" & Stage == "dose\n2", 
+            .(session, participant, response, Drug, Stress)] %>% 
+  setnames("response","drug_feel")
+
+dosage_data = merge(dosage_data,drug_feel, by = c("participant","session"))
+
+
+dosage_data[participant == 22 & session == 1, Drug := "oxycodone"]
+feel_tresh = dosage_data[Drug == "placebo", quantile(drug_feel, .95)]
+dosage_data = 
+  dosage_data %>% 
+   .[is.na(weight_kg), weight_kg := fmean(weight_kg), by = .(participant)] %>% 
+  .[, session := as.integer(session)] %>% 
+  setkeyv(.,key(my_data_beh)) %>% 
+  .[participant %in% unique(my_data_beh$participant)]
+
+mg_per_kg = fmean(dosage_data[Drug == "oxycodone",drug_1_dose]/dosage_data[Drug == "oxycodone",weight_kg])
+dosage_data = 
+  dosage_data %>% 
+  merge(my_data_beh[, .(participant,session,target)], all = TRUE) %>% 
+  .[is.na(drug_1_dose), dosage_data := weight_kg*mg_per_kg] %>% 
+  .[, drug_2_dose_theory := drug_1_dose*(target/100)] %>% 
+  .[, drug_1_dose_kg := drug_1_dose/weight_kg] %>% 
+  .[, drug_2_dose_kg := drug_2_dose_theory/weight_kg] %>% 
+  .[, drug_2_dose_70kg := drug_2_dose_kg*70] 
+
+
+m.format = function(x, digits = 3) round(mean(x,na.rm = TRUE),digits)
+```
+As preregistered, we restrict the following analysis to the oxycodone condition.
+
+```{r}
+my_data_beh.all = 
+  my_data_beh[, .(Sex, participant, session,
+                  Drug, state.condition, effect_obtained, target,
+                  mean.delta_effect_obtained,
+                  first.time.target)] 
+my_data_beh = 
+  copy(my_data_beh.all) %>% 
+  .[Drug == "oxycodone"]
+```
+
+To deal with the multi-modal nature of the data, we use an ordered logistic regression, for which we coarsen the data in 25 equally sized ordered categories.
+
+```{r coarsen}
+n_cat = 25
+my_data_beh = 
+  coarsen(my_data_beh,
+          var = "effect_obtained",
+          bins = n_cat,
+          range = c(0,125))
+```
+
+```{r prep_session_factor, include=FALSE}
+# Cumulative OLR chunk omitted in this excerpt; session must be factor for brms.
+my_data_beh[, session := factor(session)]
+```
+
+---
+
+## Ordinal and self-report analyses
+
+The following sections are copied from the full report. For the cumulative (proportional-odds) model and diagnostic figures that precede adjacent-category OLR in the full document, see [OPIOIDREWARD_WP1.Rmd](OPIOIDREWARD_WP1.Rmd).
+
+### Bayesian OLR with adjacent category model with category specific effects
+
+We repeat the same analysis as before, except that we use an *adjacent category* (instead of the *cumulative*) ordered logistic regression with category specific effects. Differently than the previous analysis, this model does not assume proportional odds. The advantage of this model is that we can fit the data better and have a higher power to detect effects. The disadvantage is that the model estimates for each category transition separate odds ratios. Therefore, it is not meaningful to report one odds ratio as a model parameter.
+
+Here we estimate the model.
+
+```{r OLRAdjCat}
+analysis_formula = 
+  formula(effect_obtained.c ~ cs(state.condition) + (1 + state.condition | participant) + (1|session))
+prior_sds = c(.5, 1, 5, 2)
+make_prior_b = function(prior_sd) {
+  return(
+    eval(parse(text = paste("prior(normal(0,",prior_sd,"), class = b)")))
+  )
+}
+for (prior_sd in prior_sds) {
+  fn = paste0("brmsP1/obtained/nosex_acat",prior_sd,".Rdata")
+  if (file.exists(fn)) {
+    load(fn)
+  } else {
+    my_prior = 
+      get_acat_thresh_priors(
+        my_data_beh$effect_obtained.c,
+        make_prior_b(prior_sd) + 
+          prior(normal(0,2), class = "sd"))
+    
+    fit = brm(
+      analysis_formula,
+      family = acat(),
+      data = my_data_beh,
+      prior = my_prior,
+      backend = "cmdstanr",
+      iter = 2000)
+    save(fit,file = fn)
+  }
+}
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.1 and the effect sample size (ess) should be larger than 500.", fig.height=3}
+sample_diags = fit %>% model_summary()
+sample_diags$plot
+```
+
+```{r results='asis', echo = FALSE}
+if (rmd_output == "html") {
+  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat(sample_diags$table)
+  cat("</details> \n <br>")
+}
+```
+
+Next, we calculate the effects on the original 0-125 scale from the fitted model. This approach removes the effect of session by calculating model-predicted outcomes for the two stress conditions in under the assumption that each condition could be in session 1, 2, 3, or 4.
+
+```{r}
+my_contrasts = plot_results_origscale(fit,dt = my_data_beh, ylim = c(60,120))
+```
+
+```{r, fig.cap="Estimated mean desired drug effect in the 2 state induction conditions (left) and effect of stress, calculate as desired drug effect in the stress condition minus desired drug effect in the conrol condition (left)"}
+my_contrasts$plot
+```
+
+```{r}
+my_caption = "Model-estimated effect obtained by condition"
+my_contrasts$simple.stats %>% 
+  my_flextable(caption = my_caption) 
+```
+
+```{r results='asis', echo = FALSE}
+cat(
+  paste(
+    "In the stress condition participants worked on average for",
+    round(my_contrasts$stats[,mean]),
+    "CI = [",
+    my_contrasts$stats[,CI], "]",
+    "P_E>0 = ",
+    round(my_contrasts$stats[,"P > 0"],2),
+    "percentage points higher oxycodone dosage.\n"
+  )
+)
+```
+
+### Prior sensitivity analysis
+
+To investigate the effect of the model priors on the results we compare the effects calculated with the posterior distribution of the parameters with effects calculate from the prior distribution of the parameters.
+
+First, we generate samples from the prior distribution only and we calculate the same contrasts that we previously calculated with the posterior distributions, this time using the prior distribution.
+
+```{r PriorSense}
+psa_contrasts = c()
+for (prior_sd in prior_sds) {
+  fn = paste0("brmsP1/obtained/nosex_acat",prior_sd,"_psa.Rdata")
+  if (file.exists(fn)) {
+    load(fn)
+  } else {
+    my_prior = 
+      eval(parse(text = paste("prior(normal(0,",prior_sd,"), class = b)")))+ 
+      prior(normal(0,1), class = Intercept)
+    prior_samples = brm(
+      analysis_formula,
+      sample_prior = "only", # only prior samples
+      family = acat(),
+      data = my_data_beh,
+      prior = my_prior,
+      backend = "cmdstanr",
+      iter = 5000)
+    save(prior_samples,file = fn)
+  }
+  # calculate contrasts
+  my_contrasts_prior = plot_results_origscale(prior_samples,dt = my_data_beh)
+  load(paste0("brmsP1/obtained/nosex_acat",prior_sd,".Rdata"))
+  my_contrasts = plot_results_origscale(fit,dt = my_data_beh)
+  
+  # collect all samples
+  psa_contrasts = rbind(
+    psa_contrasts,
+    rbind(
+      my_contrasts$dt.samples.d[, .(value)][, from := "posterior"][, prior_sd := prior_sd],
+      my_contrasts_prior$dt.samples.d[, .(value)][, from := "prior"][, prior_sd := prior_sd]
+    )
+  )
+}
+```
+
+And we compare stress effects from posterior and prior under the chosen prior of $\textrm{Normal}(0,2)$ for the main effect of state condition. Note that the effect does not simply follow a normal distribution, because it is also influenced by other model parameters.
+
+```{r fig.cap="Effect distribution under posterior samples and prior prior samples.", fig.height=3}
+psa_contrasts %>% 
+  .[, from := factor(from, levels = c("prior","posterior"))] %>% 
+  .[prior_sd == 2] %>% 
+  ggplot(aes(x = value, color = from)) + 
+  geom_density() + 
+  xlab("calculated effect") +
+  ylab("") +
+  theme(legend.position = "right") +
+  geom_vline(xintercept = 0, lty = 2) + 
+  gg_no_y_axis
+```
+
+The figure above illustrates that the prior distribution for the effect is a shrinkage prior that favors null effects over alternative effects. In comparison, the posterior distribution of the effect is narrower and has a non-zero mean. Generally, the employed shrinkage prior means that our estimate of the stress effect is conservative.
+
+Here are calculated effects given the prior and posterior distribution for alternative standard deviations for the prior on the state-condition effect:
+
+```{r fig.cap="Effect distribution under posterior samples and prior prior samples."}
+psa_contrasts %>% 
+  .[, `prior sd` := factor(prior_sd, levels = c("2","0.5","1","5"))] %>% 
+  ggplot(aes(x = value, color = from, lty = `prior sd`)) + 
+  geom_density() + 
+  ylab("calculated effect") +
+  xlab("") +
+  facet_wrap(~from, scales = "free", nrow = 2) +
+  theme(legend.position = "right") +
+  gg_no_y_axis
+```
+
+```{r}
+psa_contrasts %>% 
+  .[, .(`mean (CI)` = get_mci(value,digits = 1)), by = .(from,prior_sd)] %>% 
+  dcast(prior_sd ~ from) %>% 
+  my_flextable(caption = "Effects of stress condition caculated from prior and posterior distribution.") 
+```
+
+Priors with smaller standard deviations for the effect of stress lead to posterior distributions for the effect of stress with somewhat smaller means and standard deviations, whereas priors with larger standard deviations for the effect of stress would lead to posterior distributions for the effect of stress with somewhat larger mean and standard deviations. In sum, our results show that we have employed shrinkage priors that result in a conservative estimate of the effect of stress.
+
+
+For contraception/nicotine sensitivity and other extensions, see [OPIOIDREWARD_WP1.Rmd](OPIOIDREWARD_WP1.Rmd).
+
+### OLR with sex effects
+
+Because the initial data visualisation also shows sex effects, we estimate sex specific main effects and effects of stress in the next model.
+
+This analysis uses an adjacent category model with category-specific effects, which relaxes the assumption of proportional odds. The basic analysis model is to estimate the obtained effect dependent on state-condition and sex, while accounting for repeated measurement within individuals and for session effects with random effects.
+
+In particular, we use the following model:
+
+```{r class.source = 'fold-show'}
+analysis_formula = 
+  effect_obtained.c ~ 
+    # category specific effects of state condition and sex
+    cs(state.condition*Sex) +
+    # random effects for participants
+    (1 + state.condition | participant) + 
+    # random effects for session
+    (1|session)
+```
+
+```{r OLRSexAcatBRMS, results = "hide", message=FALSE}
+for (prior_sd in prior_sds) {
+  fn = paste0("brmsP1/obtained/acat",prior_sd,".Rdata")
+  if (file.exists(fn)) {
+    load(fn)
+  } else {
+    my_prior = 
+      get_acat_thresh_priors(
+        my_data_beh$effect_obtained.c,
+        make_prior_b(prior_sd) + 
+          prior(normal(0,2), class = "sd"))
+    control = list(adapt_delta = .90)
+    fit = brm(
+      analysis_formula,
+      family = acat(),
+      data = my_data_beh,
+      prior = my_prior,
+      backend = "cmdstanr",
+      iter = 2000)
+    save(fit,file = fn)
+    prior_samples = update(fit,sample_prior = "only")
+    save(prior_samples,file = gsub(".Rdata","_psa.Rdata",fn))
+  }
+}
+load(paste0("brmsP1/obtained/acat",2,".Rdata"))
+```
+
+```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.1 and the effect sample size (ess) should be larger than 500.", fig.height=3}
+sample_diags = fit %>% model_summary()
+sample_diags$plot
+```
+
+```{r results='asis', echo = FALSE}
+if (rmd_output == "html") {
+  cat("<details> \n <summary>Click to show the table with the full sample diagnostics.</summary>")
+  cat(sample_diags$table)
+  cat("</details> \n <br>")
+}
+```
+
+To communicate the results we calculate conditional effects, which show by how many percentage points the obtained effects increased on average in the stress condition. See the function `make_plot_samples` in the utils.R file for details.
+
+```{r}
+plot.stats_table_obtained = 
+  plot_results_origscale_sex(
+    fit,
+    my_data_beh,
+    outcome.var = "effect_obtained.c")
+
+
+ggsave(plot.stats_table_obtained$plot,
+        filename = "figures/Effect_Obtained.png", 
+        width = 20,height = 15, units = "cm")
+```
+
+!["Effect of stress on effect obtained in the self administration task"](figures/Effect_Obtained.png){width="75%"}
+
+```{r}
+my_caption = "Model-estimated effect obtained by sex and state condition."
+my_footnote = "Numbers are means and CrIs: Upper and lower bound of 95% credible intervals"
+plot.stats_table_obtained$simple.stats %>% 
+  my_flextable(digits = 2, caption = my_caption, footnote = my_footnote) 
+```
+
+```{r}
+plot.stats_table_obtained$tbl_me_sex 
+``` 
+
+```{r}
+my_caption = "Effect of stress on effect obtained by sex, over all, and sex difference"
+my_footnote = "CI: Upper and lower bound of 95% credible intervals. P > 0: Posterior probability that the parameter or contrast is larger than 0."
+plot.stats_table_obtained$stats[,.(Sex, mean, CI, `P > 0`)] %>% 
+  .[, Sex := factor(Sex, levels = c("total","women","men","sex diff: m-f"))] %>% 
+  setkeyv("Sex") %>% 
+  my_flextable(digits = 2, caption = my_caption, footnote = my_footnote)
+
+PS = plot.stats_table_obtained$stats
+```
+
+```{r results='asis', echo = FALSE}
+cat(paste(
+  "We used hierarchical ordinal logistic regression models to estimate the effect of stress on the desired drug effect, which was measured as the percent of the drug effect from the first drug administration participants worked for in the self administration task. To better understand the magnitude of these effects, we calculated marginal effects of stress on desired drug effect. Taking sex differences into account revealed that whereas stress over all increased wanting by",
+  print_PSs(PS[3]),
+  "points, stress increased desired drug effect in only men. In men, wanting was",
+  print_PSs(PS[1]),
+  "percentage points higher in the stress compared to the control condition, and in women the differences was",
+  print_PSs(PS[2]),
+  "The male-female differences of",
+  print_PSs(PS[4]),
+  "percentage points indicates that the effect of stress on desired drug effect was higher in men than in women.\n\n",
+  "To investigate potential explanations for the sex difference in desired drug effect we explored sex differences in the effect of drug on positive and negative affect, embarrassment/selfconsciousness and drug-side. This exploratory analysis showed that while women reported greater side effects (no differences for other affect variables), including drug effects on these potential mediators did not abolish the sex differences. This suggests that sex differences of drug effects on affect and side effects cannot fully explain the sex differences in desired drug effect."
+))
+```
+
+---
+
+## Self reported effects (stated desired only)
+
+For DEQ take-drug-again and other items in the full chapter, see [OPIOIDREWARD_WP1.Rmd](OPIOIDREWARD_WP1.Rmd).
+
+### Stated desired effect
+
+Prepare data
+
+```{r selfReportEffects, fig.cap="Histogram of targeted % of drug effect stratified by sex and stress condition."}
+my_data_beh = 
+  merge(my_data_beh,
+        cheaters,
+        by = c("participant","Drug","state.condition","session"),
+        all.x = TRUE)
+my_data_beh = 
+  coarsen(my_data_beh,
+          var = "target",
+          bins = n_cat,
+          range = c(0,125))
+
+my_data_beh[is.na(cheater)] %>% 
+  ggplot(aes(x = target, fill = state.condition)) + 
+  geom_histogram(alpha = .5, position = "identity") + 
+  scale_col_stress + 
+  facet_grid(Sex~Drug) 
+```
+
+Estimate the model and make plots.
+
+```{r selfReportEffectsDesiredBMRS}
+analysis_formula = 
+  formula(target.c ~ cs(state.condition*Sex) + (1 + state.condition | participant) + (1|session))
+my_prior = 
+    prior(normal(0,2), class = b) + 
+    prior(normal(0,1), class = Intercept)
+fn = "brmsP1/desired.Rdata"
+if (file.exists(fn)) {
+  load(fn)
+} else {
+  fit = brm(
+    analysis_formula,
+    family = acat(),
+    data = my_data_beh[is.na(cheater)],
+    prior = my_prior,
+    iter = 5000,
+    backend = "cmdstanr")
+  save(fit,file = fn)
+}
+
+plot.stats_table_target = 
+  plot_results_origscale_sex(
+    fit,
+    my_data_beh[is.na(cheater)],
+    outcome.var = "target.c")
+
+p1 = plot.stats_table_target$p1 + ylab("% desired effect (0-125)")
+yrange = layer_scales(p1)$y$range$range
+p1 = p1 + scale_y_continuous(limits = yrange,expand = c(.1,0,0,0)) +
+  guides(y = guide_axis_truncated(
+    trunc_lower = yrange[1]+diff(yrange)/500)) +
+  coord_cartesian(ylim = c(67,111)) +
+  xlab("") +
+  theme(plot.title = element_text(hjust = -.05))
+
+p2 = plot.stats_table_target$p2
+
+px = 
+  (p1 | p2) + 
+  plot_layout(widths = c(4,1),) +
+  plot_annotation(tag_levels = 'A')
+ggsave(px,
+       filename = "figures/Effect_Desired.png", 
+       width = 20,height = 15, units = "cm")
+```
+
+Here are the estimated responses:
+
+```{r}
+my_caption = "Model-estimated stated desired effect by sex and state condition."
+my_footnote = "Numbers are means and CrIs: Upper and lower bound of 95% credible intervals"
+plot.stats_table_target$simple.stats %>% 
+  my_flextable(digits = 2, caption = my_caption, footnote = my_footnote)
+```
+
+And the other results:
+
+```{r}
+plot.stats_table_target$tbl_me_sex$caption$value = 
+  "Effect of sex, calculated as stated desired effect in men - women."
+plot.stats_table_target$tbl_me_sex 
+```  
+
+
+```{r}
+my_caption = "Effect of stress on stated desired effect by sex, over all, and sex difference"
+my_footnote = "CI: Upper and lower bound of 95% credible intervals. P > 0: Posterior probability that the parameter or contrast is larger than 0."
+plot.stats_table_target$stats[,.(Sex, mean, CI, `P > 0`)] %>% 
+  .[, Sex := factor(Sex, levels = c("total","women","men","sex diff: m-f"))] %>% 
+  setkeyv("Sex") %>% 
+  my_flextable(digits = 2, caption = my_caption, footnote = my_footnote)
+
+PS = plot.stats_table_target$stats
+```
+
+
+```{r, fig.cap= "Effect of stress on desired effect in the self administration task"}
+px
+```
+
+![""](figures/Effect_Desired.png){width="75%"}
