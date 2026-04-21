@@ -1,8 +1,8 @@
 ```{r echo=FALSE,message=FALSE,results="asis"}
 var.name = gsub("_"," ",var)
 cat(paste("\n\n### Side effect: ",stringr::str_to_title(var.name),"\n"))
-data_caption = paste0("Raw data for '", var.name ,"' ratings.")
-results_caption = paste0("Posterior distributions of the effect of drug on'",var.name,"' ratings.")
+data_caption = paste0("Change in", var.name ,"ratings from pre to post first drug administration. Each line represents an individual. The drug effect is reflected in the slope of the lines.")
+results_caption = paste0("Posterior distributions of estimated drug effects on self-reported",var.name," on a 0-100 VAS within and across men and women, as well as the difference between sexes (women-men). Density plots show posterior distributions. Dots and lines indicate means, and 50 & 95% credible intervals.")
 ```
 
 ```{r, echo=show.details, message=FALSE,results="asis", fig.cap=data_caption, fig.height=2.5}
@@ -28,10 +28,13 @@ if (file.exists(fn)) {
   }
 ```
 
+```{r}
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+```
 
 ```{r, echo=show.details, message=FALSE,results="asis", , fig.cap=results_caption, fig.height=2.5}
 tmp = plot_prepost_contrast(fit, the_data, var , my_contrast = "drug")
-tmp$plot
+tmp$plot+ggtitle(paste0("Oxycodone effect on '", gsub("_"," ",var), "' rating"))+xlab("Oxycodone effect: oxycodone (post - pre) - placebo (post - pre)")
 ```
 
 ```{r, echo=FALSE,results="asis"}

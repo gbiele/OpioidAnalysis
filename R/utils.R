@@ -98,7 +98,7 @@ model_summary = function(fit,grep_string = "b_|sd_|bs_|bcs_|sigma") {
   
   tbl = 
     sample_diags %>% 
-    kable(caption = "Summary of model paramters",
+    kable(caption = "Summary of model parameters",
           digits = c(1,1,2,1,1,3,0,0)) %>% 
     kable_styling(full_width = FALSE) %>% 
     kable_classic() %>% 
@@ -471,7 +471,7 @@ diff.plotter = function(dts, sx, base.size = NULL) {
 #' @examples
 #' # Assuming 'fit' is a brmsfit object and 'data' is a data.table
 #' results = plot_results_origscale(fit, data)
-plot_results_origscale = function(fit, dt, ylim = NULL) {
+plot_results_origscale = function(fit, dt, ylim = NULL, base.size=16) {
   outcome.var = "effect_obtained.c"
   var = outcome.var %>% gsub("\\.c","",.)
   
@@ -531,13 +531,14 @@ plot_results_origscale = function(fit, dt, ylim = NULL) {
     stat_halfeye(aes(scale = scl, slab_alpha = after_stat(f)),
                  height = .5, show.legend = c(slab_alpha = FALSE, size = FALSE)) +
     stat_pointinterval() + 
-    theme(legend.position = "none", axis.line = element_line(),text = element_text(size = 20)) +
-    guides(y = guide_axis_truncated(
-      trunc_lower = ylim[1],
-      trunc_upper = ylim[2])) + 
+    theme(legend.position = "none", axis.line = element_line(),text = element_text(size = base.size)) +
+    guides(y=guide_axis(cap=TRUE))+
+    #guides(y = guide_axis_truncated(
+    #  trunc_lower = ylim[1],
+    #  trunc_upper = ylim[2])) + 
     coord_cartesian(xlim = c(1.25,1.75), ylim = ylim) +
-    ylab("% effect obtained (0-125)") +
-    xlab("State condition") 
+    ylab("Effect % obtained (0-125)") +
+    xlab("") 
   
   contr.stats = 
     dt.samples.d %>% 
@@ -558,8 +559,8 @@ plot_results_origscale = function(fit, dt, ylim = NULL) {
       by = .(state.condition)]
   
   p2 = 
-    diff.plotter(dt.samples.d[, Sex := "all"],"all") + 
-    ylab("Effect of stress on drug wanting (difference % obtained)")
+    diff.plotter(dt.samples.d[, Sex := "all"],"all", base.size = base.size) + 
+    ylab("Effect of stress on drug wanting\n(difference % obtained)")
   
   p = p1 | p2
   
@@ -567,7 +568,6 @@ plot_results_origscale = function(fit, dt, ylim = NULL) {
               dt.samples = dt.samples, dt.samples.d = dt.samples.d))
   
 }
-
 
 
 #' Stratified Analysis and Visualization of BRMS Model Results by Sex
@@ -751,6 +751,214 @@ plot_results_origscale_sex = function(fit, dt, outcome.var = NULL, plot.sex_avg 
               dt.samples = dt.samples, dt.samples.d = dt.samples.d, tbl_me_sex = tbl_me_sex, all_contrasts_tbl = all_contrasts_tbl))
 }
 
+plot_results_origscale_sex2 = function(fit, dt, outcome.var = NULL, plot.sex_avg = "yes", base.size = 16, ylim = NULL, ymax = 120) {
+  
+  if (is.null(outcome.var)) {
+    stop("The function requires explicit declaration of an outcome variable 'outcome.var'")
+  }
+  if (is.null(dt)) {
+    stop("The function requires explicit declaration of the original data set")
+  }
+  
+  var = outcome.var %>%
+    gsub("\\.c","",.)
+  
+  plotting_samples = make_plot_samples(fit, dt, outcome.var)
+  
+  dt.samples = plotting_samples[["dt.samples"]] %>% 
+    .[, scl := ifelse(state.condition == "stress",.25, -.25)] # control direction (left/right) of posterior density plot
+  dt.samples.d = plotting_samples[["dt.samples.d"]] 
+  
+  dt.samples %>% 
+    .[, Sex := gsub("man","men",Sex)] %>% 
+    .[Sex == "all", Sex := "total"]
+  
+  all_contrasts_tbl = 
+    dcast(dt.samples,formula = iter ~ Sex + state.condition, value.var = "value") %>% 
+    .[, all_control := NULL] %>% 
+    .[, all_stress := NULL] %>% 
+    .[, women   := (women_control + women_stress)/2] %>% 
+    .[, men     := (men_control + men_stress)/2] %>% 
+    .[, stress  := (women_stress + men_stress)/2] %>% 
+    .[, control := (women_control + men_control)/2] %>% 
+    .[, `women-men` := women-men] %>% 
+    .[, `stress - ctrl` := stress - control] %>% 
+    .[, `stress - ctrl in men`   := men_stress-men_control] %>% 
+    .[, `stress - ctrl in women` := women_stress-women_control] %>% 
+    .[, `women - men in ctrl` := women_control - men_control] %>% 
+    .[, `women - men in stress` := women_stress - men_stress] %>% 
+    .[, three_way_interaction := `stress - ctrl in women` - `stress - ctrl in men`] %>% 
+    melt(id.var = "iter") %>% 
+    .[, .(stats = print_effect(value, contr = "E>0")), by = variable] %>% 
+    .[, stats := gsub("95% CrI=\\[","",stats)] %>% 
+    .[, stats := gsub("\\]",")", stats)] %>% 
+    .[, stats := gsub("$\\)","",stats)] %>% 
+    setnames(c("variable","stats"),c("Effect or contrast", "Statistics"))
+  
+  dt.samples.d %>% 
+    .[, Sex := gsub("man","men",Sex)] %>% 
+    .[Sex == "all", Sex := "total"]
+  
+  my.clrs = palette()[c(8,2,4)]
+  names(my.clrs) = c("total","women","men")
+  if(plot.sex_avg == "no") {
+    dt.samples = dt.samples[Sex != "total"]
+    dt.samples.d = dt.samples.d[Sex != "total"]
+    my.clrs = my.clrs[-1]
+  } else if (plot.sex_avg == "only") {
+    dt.samples = dt.samples[Sex == "total"]
+    dt.samples.d = dt.samples.d[Sex == "total"]
+  } else {
+    dt.samples[, grp := ifelse(Sex == "total","a","b")]
+    dt.samples.d[, grp := ifelse(Sex == "total","a","b")]
+  }
+  
+  ## wanting by stress
+  stats.scale = dt.samples %>% 
+    na.omit() %>%
+    .[, .(mean = mean(value),
+          lower = quantile(value,.025),
+          upper = quantile(value, .975)),
+      by = .(state.condition, Sex)] %>% 
+    .[, CI := paste(round(c(lower,upper),2), collapse = ", "), by = .(Sex,state.condition)]
+  
+  stats.scale[, grp := ifelse(Sex == "all", "all", "by sex")]
+  
+  if (plot.sex_avg != "only") {
+    ## main effect of sex
+    tbl_me_sex = 
+      dt.samples %>% 
+      dcast(state.condition + iter ~ Sex, value.var = "value") %>% 
+      .[, main_woman := men-women] %>% 
+      .[, .(state.condition, iter, main_woman)] %>% 
+      dcast(iter ~ state.condition, value.var = "main_woman")  %>% 
+      .[, overall := (control+stress)/2] %>% 
+      melt(id.vars = "iter", variable.name = "state condition") %>% 
+      .[, .(effect_woman = get_mci(value,get.P = TRUE)), by = c("state condition")] %>% 
+      my_flextable(caption = "Effect of sex, calculated as effect obtained in men - women.",
+                   footnote = "Numbers are means and CIs: Upper and lower bound of 95% credible intervals")
+  } else  {
+    tbl_me_sex = NULL
+  }
+  
+  if (is.null(ymax))
+    ymax = ceiling(fmax(dt.samples[iter %in% 1:150,value])*1.1)
+  if (is.null(ylim)) {
+    ylim = c(floor(fmin(dt.samples[iter %in% 1:150,value])/10)*10, ymax)
+  } else {
+    yrange = layer_scales(p1)$y$range$range
+    ylim = c(yrange[1]+diff(yrange)/2000,ymax)
+  }
+  
+  dt.samples$sc <- as.numeric(factor(dt.samples$state.condition))
+  
+  p_extra =
+    dt.samples %>%
+    na.omit() %>%
+    ggplot(aes(x = sc, y = value, color = Sex, group = factor(iter):factor(Sex))) + 
+    geom_line(data = dt.samples[iter %in% 1:150], alpha = .15)  +
+    stat_halfeye(aes(group = Sex, fill = Sex, scale = scl, slab_alpha = after_stat(f)),
+                 height = .5, show.legend = c(slab_alpha = FALSE, size = FALSE)) +
+    stat_pointinterval(aes(group = Sex)) + 
+    theme(legend.position = "none", axis.line = element_line(),text = element_text(size = base.size)) +
+    ylab("ffect % obtained (0-125)") +
+    xlab("") +
+    scale_col_sex + 
+    guides(y=guide_axis(cap=TRUE))+
+    #guides(y = guide_axis_truncated(
+    #  trunc_lower = ylim[1],
+    #  trunc_upper = ylim[2])) + 
+    coord_cartesian(xlim = c(0.8,2.2), ylim = ylim) + 
+    scale_x_continuous(breaks = c(1,2), labels = c("control","stress"))
+  
+  if (plot.sex_avg == "yes"){
+    p1a =
+      dt.samples[grp=="a"] %>%
+      na.omit() %>%
+      ggplot(aes(x = sc, y = value, color = Sex, group = factor(iter):factor(Sex))) + 
+      geom_line(data = dt.samples[iter %in% 1:150 & grp=="a"], alpha = .15)  +
+      stat_halfeye(aes(group = Sex, fill = Sex, scale = scl, slab_alpha = after_stat(f)),
+                   height = .5, show.legend = c(slab_alpha = FALSE, size = FALSE)) +
+      stat_pointinterval(aes(group = Sex)) + 
+      theme(legend.position = "none", axis.line = element_line(),text = element_text(size = base.size)) +
+      ylab("Effect % obtained (main effect)") +
+      xlab("") +
+      scale_col_sex + 
+      guides(y=guide_axis(cap=TRUE))+
+      #guides(y = guide_axis_truncated(
+      #  trunc_lower = ylim[1],
+      #  trunc_upper = ylim[2])) + 
+      coord_cartesian(xlim = c(0.8,2.2), ylim = ylim) + 
+      scale_x_continuous(breaks = c(1,2), labels = c("control","stress"))
+    
+    p1b =
+      dt.samples[grp=="b"] %>%
+      na.omit() %>%
+      ggplot(aes(x = sc, y = value, color = Sex, group = factor(iter):factor(Sex))) + 
+      geom_line(data = dt.samples[iter %in% 1:150 & grp=="b"], alpha = .15)  +
+      stat_halfeye(aes(group = Sex, fill = Sex, scale = scl, slab_alpha = after_stat(f)),
+                   height = .5, show.legend = c(slab_alpha = FALSE, size = FALSE)) +
+      stat_pointinterval(aes(group = Sex)) + 
+      theme(legend.position = "none", axis.line = element_line(),text = element_text(size = base.size)) +
+      ylab("Effect % obtained (by sex)") +
+      xlab("") +
+      scale_col_sex + 
+      guides(y=guide_axis(cap=TRUE))+
+      #guides(y = guide_axis_truncated(
+      #  trunc_lower = ylim[1],
+      #  trunc_upper = ylim[2])) + 
+      coord_cartesian(xlim = c(0.8,2.2), ylim = ylim) + 
+      scale_x_continuous(breaks = c(1,2), labels = c("control","stress"))
+    
+    p1 = (p1a | p1b) + plot_layout(widths = c(1,1))
+    p_extra = p_extra+facet_wrap(~grp) + theme(strip.text = element_blank())
+    
+  } else{
+    p1 = p_extra
+  }
+  
+  ## wanting stress contrast
+  contr.stats = dt.samples.d %>% 
+    .[, .(mean = mean(value),
+          lower = quantile(value,.025),
+          upper = quantile(value, .975),
+          `P > 0` = mean(value>0),
+          BF = round(mean(value > 0)/mean(value < 0),1)),
+      by = .(Sex, grp)] %>% 
+    .[, CI := paste(round(c(lower,upper),2), collapse = ", "), by = .(Sex)] 
+  
+  # estimated effect obtained
+  css = function(value) {sprintf("%.0f (%.0f, %.0f)",
+                                 mean(value),
+                                 quantile(value,probs = .025),
+                                 quantile(value,.975))}
+  simple.stats = 
+    dt.samples %>% 
+    .[, .(`value` = css(value)), by = .(state.condition,Sex)] %>% 
+    .[, Sex := factor(Sex,levels = c("men","women","total"))] %>% 
+    dcast(Sex~state.condition, value.var = "value")
+  
+  
+  if (plot.sex_avg == "yes") {
+    p2 = diff.plotter(dt.samples.d,c("men","total","women"), base.size = base.size)
+  } else if (plot.sex_avg == "no") {
+    p2 = diff.plotter(dt.samples.d,c("men","women"), base.size = base.size)
+  } else {
+    p2 = diff.plotter(dt.samples.d,c("total"), base.size = base.size)
+  }
+  
+  if(plot.sex_avg == "yes"){
+    p = (p1 | p2) + plot_layout(widths = c(2,2,1)) + plot_annotation(tag_levels = 'A')
+  } else{
+    p = (p1 | p2) + plot_layout(widths = c(4,1))
+    
+  }
+  
+  return(list(stats = contr.stats, simple.stats = simple.stats, stats.scale = stats.scale, plot = p, p1 = p1, p2 = p2, p_extra = p_extra,
+              dt.samples = dt.samples, dt.samples.d = dt.samples.d, tbl_me_sex = tbl_me_sex, all_contrasts_tbl = all_contrasts_tbl))
+}
+
+
 #' Plot and Analyze Buffer Effect from BRMS Model
 #' Effects are calculated on the original VAS, based on an ordinal brms model for binned data
 #'
@@ -856,7 +1064,8 @@ plot_buffer_effect = function(fit,the_data,var) {
     geom_line(aes(group=Drug),position = position_dodge(0.2)) + 
     stat_interval(data = tmp[, diff := value],alpha = .25,
                   position = position_dodge(0.2)) + 
-    ylab("post-pre reminder difference")
+    ylab("post-pre reminder difference")+
+    xlab("state condition")
   
   pp_cells =
     tmp %>% 
@@ -907,7 +1116,8 @@ plot_buffer_effect = function(fit,the_data,var) {
     facet_wrap(~Sex, scales = "free") +
     ylab("") +
     gg_no_y_axis +
-    scale_col_sex.b
+    scale_col_sex.b+
+    xlab("Stress-buffering effect of drug")
   
   buffer.stats = 
     pp_cells %>% 
@@ -1427,8 +1637,8 @@ plot_prepost_contrast = function(fit,the_data,outcome, my_contrast = NULL) {
     scale_col_sex.b
   my_caption = 
     ifelse(my_contrast == "stress",
-           "Modeled post- minus pre state induction ratings of xx by condition -control, stress- and the stress effect by sex.",
-           "Modeled post- minus pre drug administration ratings of xx by condition -placebo, oxycodone- and the drug effect by sex.")
+           "Modeled post minus pre state induction ratings of xx by condition (control, stress) and the stress effect by sex.",
+           "Modeled post minus pre drug administration ratings of xx by condition (placebo, oxycodone) and the drug effect by sex.")
   my_caption = gsub("xx",outcome,my_caption)
   
   tbl = 
@@ -1625,7 +1835,7 @@ get_drug_contrasts = function(fit, the_data) {
 #'
 #' @details The function takes a data.table containing drug effects and contrasts calculated from a brms model
 #' and generates a combined ggplot2 plot that shows various drug effects, interactions, and contrasts.
-drug_plotter = function(post.contrasts) {
+drug_plotter = function(post.contrasts, ox) {
   dplotter = function(dt, title) {
     dt %>% ggplot(aes(x = est)) + 
       stat_halfeye() + 
@@ -1633,7 +1843,7 @@ drug_plotter = function(post.contrasts) {
       geom_vline(xintercept = 0) + 
       ggtitle(title)
   }
-  ox = attr(post.contrasts,"outcome")
+  #ox = attr(post.contrasts,"outcome")
   p1 = post.contrasts %>% 
     .[effect %in% c("in_women","in_men")] %>% 
     .[, effect := gsub("in_","",effect)] %>% 
@@ -1666,7 +1876,7 @@ drug_plotter = function(post.contrasts) {
     ylab("") +
     gg_no_y_axis
   p4 = post.contrasts[grepl("way",effect)] %>% 
-    dplotter("Three way interaction:\nwoman_vs_man_in_ctrl-\nwoman_vs_man_in_stress") +
+    dplotter("Three way interaction:\ncontrol (women - men) -\nstress (women - men)") +
     theme(plot.title = element_text(size = 10)) + 
     ylab("") +
     gg_no_y_axis
@@ -2376,7 +2586,7 @@ analyse_obtained = function(f, data, fn, my_prior = NULL) {
   
   by_sex = any("Sex" == all.vars(analysis_formula))
   if (by_sex == TRUE) {
-    plot_stats = plot_results_origscale_sex(fit, data, outcome.var = "effect_obtained.c")
+    plot_stats = plot_results_origscale_sex2(fit, data, outcome.var = "effect_obtained.c")
     plot_stats$stats = 
       plot_stats$stats %>% 
       .[,.(Sex, mean, CI, `P > 0`)] %>% 
