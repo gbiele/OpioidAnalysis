@@ -1,4 +1,4 @@
-# Replication Package: Stress-Enhanced Opioid Self-Administration in Healthy Men
+# Replication Package: Effects of Psychosocial Stress on Opioid Self-Administration in Healthy Participants
 
 This repository contains the data and analysis code for the paper:
 
@@ -97,6 +97,13 @@ install.packages(c(
 > ```r
 > install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
 > ```
+
+> **Note:** `hausekeep` is not available for all versions of R. Install it with:
+> ```r
+> install.packages("remotes")
+> remotes::install_github("hauselin/hausekeep")
+> ```
+
 
 ## Reproducing the Analysis
 
