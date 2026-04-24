@@ -2,8 +2,8 @@
 
 This repository contains the data and analysis code for the paper:
 
-> Eikemo, M., Løseth, G. E., Carlyle, M., Trøstheim, M., Ernst, G., Pazmandi, C., Thompson, M., Vezzani, C., Meier, I. M., Johnstone, T., Heilig, M., Biele, G., & Leknes, S.
-> *Stress-enhanced opioid self-administration in healthy men.*
+> Eikemo, M., Løseth, G. E., Carlyle, M., Trøstheim, M., Ernst, G., Pazmandi, C., Thompson, M., Vezzani, C., Meier, I. M., Roland, M. N., Johnstone, T., Heilig, M., Biele, G., & Leknes, S.
+> *Statistical analyses and plots for <br>"Effects of Psychosocial Stress on Opioid Self-Administration in Healthy Participants: A Randomized, Placebo-Controlled Crossover Trial.*
 
 - **Preregistration:** <https://osf.io/bcxv8>
 - **Preprint:** <https://osf.io/preprints/osf/v8dxy>
