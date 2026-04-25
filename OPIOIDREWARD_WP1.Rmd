@@ -84,7 +84,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   eval = TRUE)
 invisible(lapply(c("brmsP1","brmsP1/drug","brmsP1/obtained","brmsP1/Reminder",
-                   "fits","fits/buffer","fits/drug","fits/obtained","fits/Reminder", "fits/TC"), 
+                   "fits","fits/buffer","fits/drug","fits/obtained","fits/Reminder", "fits/TC",
+                   "figure", "figures"), 
                  function(x) if(!dir.exists(x)) dir.create(x)))
 ```
 
