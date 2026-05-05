@@ -153,7 +153,7 @@ if (file.exists(f)) {
 
 ```{r}
 cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
-fit$data %>% dplyr::group_by(Drug, Stress) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
+fit$data %>% dplyr::group_by(Stress, reminder, Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -204,7 +204,7 @@ if (file.exists(f)) {
 
 ```{r}
 cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
-fit$data %>% dplyr::group_by(Drug, Stress) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
+fit$data %>% dplyr::group_by(Stress, reminder, Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -252,7 +252,7 @@ if (file.exists(f)) {
 
 ```{r}
 cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
-fit$data %>% dplyr::group_by(Drug, Stress) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
+fit$data %>% dplyr::group_by(Stress, reminder, Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -302,7 +302,7 @@ if (file.exists(f)) {
 
 ```{r}
 cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
-fit$data %>% dplyr::group_by(Drug, Stress) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
+fit$data %>% dplyr::group_by(Stress, reminder, Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -345,7 +345,7 @@ if (file.exists(f)) {
 
 ```{r}
 cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
-fit$data %>% dplyr::group_by(Drug, Stress) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
+fit$data %>% dplyr::group_by(Stress, reminder, Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -390,7 +390,7 @@ if (file.exists(f)) {
 
 ```{r}
 cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
-fit$data %>% dplyr::group_by(Drug, Stress) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
+fit$data %>% dplyr::group_by(Stress, reminder, Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
