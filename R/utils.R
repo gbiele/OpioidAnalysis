@@ -880,7 +880,7 @@ plot_results_origscale_sex2 = function(fit, dt, outcome.var = NULL, plot.sex_avg
       stat_halfeye(aes(group = Sex, fill = Sex, scale = scl, slab_alpha = after_stat(f)),
                    height = .5, show.legend = c(slab_alpha = FALSE, size = FALSE)) +
       stat_pointinterval(aes(group = Sex)) + 
-      theme(legend.position = "none", axis.line = element_line(),text = element_text(size = base.size)) +
+      theme(legend.position = "none", axis.line = element_line(),text = element_text(size = base.size), plot.tag=element_text(face="bold")) +
       ylab("Effect % obtained (main effect)") +
       xlab("") +
       scale_col_sex + 
@@ -899,7 +899,7 @@ plot_results_origscale_sex2 = function(fit, dt, outcome.var = NULL, plot.sex_avg
       stat_halfeye(aes(group = Sex, fill = Sex, scale = scl, slab_alpha = after_stat(f)),
                    height = .5, show.legend = c(slab_alpha = FALSE, size = FALSE)) +
       stat_pointinterval(aes(group = Sex)) + 
-      theme(legend.position = "none", axis.line = element_line(),text = element_text(size = base.size)) +
+      theme(legend.position = "none", axis.line = element_line(),text = element_text(size = base.size), plot.tag=element_text(face="bold")) +
       ylab("Effect % obtained (by sex)") +
       xlab("") +
       scale_col_sex + 
@@ -948,7 +948,7 @@ plot_results_origscale_sex2 = function(fit, dt, outcome.var = NULL, plot.sex_avg
   }
   
   if(plot.sex_avg == "yes"){
-    p = (p1 | p2) + plot_layout(widths = c(2,2,1)) + plot_annotation(tag_levels = 'A')
+    p = (p1 | p2) + plot_layout(widths = c(2,2,1)) + plot_annotation(tag_levels = 'a') + theme(plot.tag=element_text(face="bold"))
   } else{
     p = (p1 | p2) + plot_layout(widths = c(4,1))
     
