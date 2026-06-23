@@ -471,7 +471,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 Figure \@ref(fig:bayesdiag) shows diagnostic statistics that are used to check if the model converged. The R-hat is the ratio of between chain variance to within chain variance and should be smaller than 1.01 [@Vehtari2020-fj]. Ess stands for the effective sample size, i.e., the number of independent draws in the posterior distribution [@Vehtari2020-fj].
@@ -573,7 +574,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and effective sample size (ess) should be larger than 500.", fig.height=3}
@@ -647,7 +649,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -785,7 +788,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(bfit$data$Participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(bfit$data$Participant)), " participants were included in this analysis.\n"))
+bfit$data %>% dplyr::group_by(grp) %>% dplyr::summarise(n=dplyr::n_distinct(Participant))
 ```
 
 ```{r , fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -1132,7 +1136,8 @@ if (file.exists(bfn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(bfit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(bfit$data$participant)), " participants were included in this analysis.\n"))
+bfit$data %>% dplyr::group_by(state.condition, stage, Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -1365,10 +1370,10 @@ p_stressed = plot_tc_OR_bayes("stressed", "state.condition") +
   ylab("Feeling stressed (VAS 0-100)") + xlab("") + 
   guides(fill=guide_legend(title="State induction"),
          color=guide_legend(title="State induction"),
-         shape=guide_legend(title="State induction")) 
-p_HeartRate = plot_tc_HeartRate() + xlab("") + theme(legend.position = "none")
+         shape=guide_legend(title="State induction")) + theme(plot.tag=element_text(face="bold"))
+p_HeartRate = plot_tc_HeartRate() + xlab("") + theme(legend.position = "none", plot.tag=element_text(face="bold"))
 
-p_cortisol = plot_tc_cortisol() + xlab("")  + theme(legend.position = "none")+
+p_cortisol = plot_tc_cortisol() + xlab("")  + theme(legend.position = "none", plot.tag=element_text(face="bold"))+
   ylab("Plasma cortisol (ng/mL)")
 
 (p_stressed | p_HeartRate | p_cortisol) + 
@@ -1435,7 +1440,8 @@ summary_plots.stress =
           panel.grid.major.y = element_blank(),panel.spacing = unit(1, "lines"),
           strip.background = element_blank(), legend.key.size = unit(0.5,"line"),
           strip.placement = "outside", legend.text = element_text(margin = margin(l=-5)),
-          text = element_text(size = base.size.F4)) + 
+          text = element_text(size = base.size.F4),
+          plot.tag=element_text(face="bold")) + 
     scale_col_sex2a + xlab("") + gg_no_x_axis + ylab(o) + theme(axis.text.x = elem_list_text())
   }
 )
@@ -1540,7 +1546,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -1611,7 +1618,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -1682,7 +1690,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -1725,12 +1734,12 @@ The following analyses show state reinstatement effects across both reinstatemen
 ```{r StateReinstEmb2Vids, fig.height=7, fig.cap="Change in embarrassment ratings from pre to post state reinstatement. A) Embarrassment ratings over time. Lines are mean responses. B) Each line represents an individual. The state reinstatement effect is reflected in the slope of the lines. C) Mean and 95% confidence intervals of differences in the change in embarrassment ratings from pre to post 1st state reinstatement between the stressful and the control reinstatement, stratified by drug condition (colors) and sex (panels). Note that these are calculated from the raw data.", results='hide',fig.keep='all'}
 my_data.Q.emb = select_data(c("embarassed"))
 my_stages = 5:8
-p1 = my_data.Q.emb %>% plot_stages(my_stages = my_stages) + xlim(15,45)
+p1 = my_data.Q.emb %>% plot_stages(my_stages = my_stages) + xlim(15,45) + theme(plot.tag=element_text(face="bold"))
 the_data = make_the_data(my_data.Q.emb, phase = "reminder")[, outcome := "emb"]
 
-p2 = the_data %>% plot_pre_post("reminder") + scale_col_stress
-p3 = plot_stresseff_raw2(the_data) + theme(legend.position = "right")+ylab("Effect of stress reminders")
-(p1 | p2) / p3 + plot_annotation(tag_levels = "A")
+p2 = the_data %>% plot_pre_post("reminder") + scale_col_stress + theme(plot.tag=element_text(face="bold"))
+p3 = plot_stresseff_raw2(the_data) + theme(legend.position = "right", plot.tag=element_text(face="bold"))+ylab("Effect of stress reminders")
+(p1 | p2) / p3 + plot_annotation(tag_levels = "a")
 ```
 
 Here we add a distinction between second and first state reinstatement to the model:
@@ -1757,7 +1766,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -1796,12 +1806,12 @@ We repeat the analysis of self-conscious ratings, now taking into account that t
 ```{r StateReinstSelfConf2Vids, fig.height=7, fig.cap="Change in self-consciousness ratings from pre to post state reinstatement. A) Self-consciousness ratings over time. Lines are mean responses. B) Each line represents an individual. The state reinstatement effect is reflected in the slope of the lines. C) Mean and 95% confidence intervals of differences in the change in self-consciousness ratings from pre to post 1st state reinstatement between the stressful and the control reinstatement, stratified by drug condition (colors) and sex (panels). Note that these are calculated from the raw data.", results='hide',fig.keep='all'}
 my_data.Q.emb = select_data(c("selfconscious"))
 my_stages = 5:8
-p1 = my_data.Q.emb %>% plot_stages(my_stages = my_stages) + xlim(15,45)
+p1 = my_data.Q.emb %>% plot_stages(my_stages = my_stages) + xlim(15,45) + theme(plot.tag=element_text(face="bold"))
 the_data = make_the_data(my_data.Q.emb, phase = "reminder")[, outcome := "emb"]
 
-p2 = the_data %>% plot_pre_post("reminder") + scale_col_stress
-p3 = plot_stresseff_raw2(the_data) + theme(legend.position = "right")+ylab("Effect of stress reminders")
-(p1 | p2) / p3 + plot_annotation(tag_levels = "A")
+p2 = the_data %>% plot_pre_post("reminder") + scale_col_stress + theme(plot.tag=element_text(face="bold"))
+p3 = plot_stresseff_raw2(the_data) + theme(legend.position = "right", plot.tag=element_text(face="bold"))+ylab("Effect of stress reminders")
+(p1 | p2) / p3 + plot_annotation(tag_levels = "a")
 ```
 
 Here we run the Bayesian ordinal logistic regression:
@@ -1821,7 +1831,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -1860,12 +1871,12 @@ We repeat the analysis as for stress while also taking into account that there a
 ```{r StateReinstStresses2Vids, fig.height=7, fig.cap="Change in stress ratings from pre to post state reinstatement. A) Stress ratings over time. Lines are mean responses. B) Each line represents an individual. The state reinstatement effect is reflected in the slope of the lines. C) Mean and 95% confidence intervals of differences in the change in stress ratings from pre to post 1st state reinstatement between the stressful and the control reinstatement, stratified by drug condition (colors) and sex (panels). Note that these are calculated from the raw data.", results='hide',fig.keep='all'}
 my_data.Q.emb = select_data(c("stressed"))
 my_stages = 5:8
-p1 = my_data.Q.emb %>% plot_stages(my_stages = my_stages) + xlim(15,45)
+p1 = my_data.Q.emb %>% plot_stages(my_stages = my_stages) + xlim(15,45) + theme(plot.tag=element_text(face="bold"))
 the_data = make_the_data(my_data.Q.emb, phase = "reminder")[, outcome := "emb"]
 
-p2 = the_data %>% plot_pre_post("reminder") + scale_col_stress
-p3 = plot_stresseff_raw2(the_data) + theme(legend.position = "right")+ylab("Effect of stress reminders")
-(p1 | p2) / p3 + plot_annotation(tag_levels = "A")
+p2 = the_data %>% plot_pre_post("reminder") + scale_col_stress + theme(plot.tag=element_text(face="bold"))
+p3 = plot_stresseff_raw2(the_data) + theme(legend.position = "right", plot.tag=element_text(face="bold"))+ylab("Effect of stress reminders")
+(p1 | p2) / p3 + plot_annotation(tag_levels = "a")
 ```
 
 Here we run the Bayesian ordinal logistic regression:
@@ -1885,7 +1896,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -1965,7 +1977,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(Drug, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -2233,7 +2246,8 @@ ggpairs(cdata[Stress == "control"],
 ```
 
 ```{r}
-cat(paste0(length(unique(cdata$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(cdata$participant)), " participants were included in this analysis.\n"))
+cdata %>% dplyr::group_by(Stress, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ### Correlations between stress and opioid responses
@@ -2305,6 +2319,15 @@ my_flextable(summary_cdata, caption="Correlations between physiological stress r
 
 ```
 
+```{r}
+summary_cdata_n <- merge(rbind(hrhrv_cdata, cortisol_cdata),
+      rbind(selfadmin_cdata, quest_cdata),
+      by=c("participant", "Drug", "state.condition"), keep="all") %>% dplyr::select(participant, state.condition, Drug) %>% unique()
+
+cat(paste0(length(unique(summary_cdata_n$participant)), " participants were included in this analysis.\n"))
+summary_cdata_n %>% dplyr::group_by(state.condition, Drug) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
+```
+
 # Summary of Drug effects
 
 ## Time courses of drug effects
@@ -2316,12 +2339,13 @@ The following figure shows means and 95% credible intervals from non-parametric 
 p_posaffect = 
   plot_tc_OR_bayes(posaffect_items,"Drug") + 
   ylab("Positive affect (VAS 0-100)") + 
-  guides(fill=guide_legend(title="Drug"), shape=guide_legend(title="State induction"))
+  guides(fill=guide_legend(title="Drug"), shape=guide_legend(title="State induction"))+
+  theme(plot.tag=element_text(face="bold"))
 p_high = plot_tc_OR_bayes("high", "Drug") + 
   ylab("Feeling high (VAS 0-100)") + 
-  theme(legend.position = "none") 
+  theme(legend.position = "none", plot.tag=element_text(face="bold")) 
 p_drug_like = plot_tc_OR_bayes("drug_like", "Drug") + 
-  theme(legend.position = "none") + 
+  theme(legend.position = "none", plot.tag=element_text(face="bold")) + 
   ylab("Drug liking (VAS 0-100)")
 
 (p_posaffect | p_high | p_drug_like) +   
@@ -2655,7 +2679,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -2724,7 +2749,8 @@ for (prior_sd in prior_sds) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -2899,7 +2925,8 @@ load(paste0("brmsP1/obtained/acat",2,".Rdata"))
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -2927,6 +2954,9 @@ plot.stats_table_obtained =
 ggsave(plot.stats_table_obtained$plot,
         filename = "figures/Effect_Obtained.png", 
         width = 20,height = 15, units = "cm")
+ggsave(plot.stats_table_obtained$plot,
+        filename = "figures/Effect_Obtained.pdf", 
+        width = 15.92,height = 11.94, units = "cm", scale=1.3, device=cairo_pdf)
 ```
 
 ![Posterior distributions of the estimated oxycodone drug effect obtained in the self-administration task in the two state induction conditions (left) and the effect of stress on this outcome calculate as stress condition minus control condition (right), within and across men and women. Dots and vertical lines indicate means, and 50 & 95% credible intervals.](figures/Effect_Obtained.png){width="75%"}
@@ -3091,7 +3121,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 <!-- ```{r fig.cap="Posterior predictive check"} -->
@@ -3143,7 +3174,8 @@ result$stats[, .(mean,CI,`P > 0`)] %>% my_flextable(digits = 2, caption = my_cap
 ```
 
 ```{r}
-cat(paste0(length(unique(my_data_beh[target > 0]$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(my_data_beh[target > 0]$participant)), " participants were included in this analysis.\n"))
+my_data_beh[target > 0] %>% dplyr::group_by(state.condition) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, results = "hide", class.source = 'fold-show', message=FALSE, fig.cap="Posterior distributions of the estimated oxycodone drug effect obtained in the self-administration task in the two state induction conditions (left) and the effect of stress on this outcome calculate as stress condition minus control condition (right), within and across men and women with a target drug effect > 0. Dots and vertical lines indicate means, and 50 & 95% credible intervals."}
@@ -3172,7 +3204,8 @@ result$stats %>% my_flextable(digits = 2, caption = my_caption)
 ```
 
 ```{r}
-cat(paste0(length(unique(my_data_beh[target > 0]$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(my_data_beh[target > 0]$participant)), " participants were included in this analysis.\n"))
+my_data_beh[target > 0] %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ### Effect obtained after adjusting for drug liking at Q5 and Q6
@@ -3215,7 +3248,8 @@ result$stats[, .(mean,CI,`P > 0`)] %>% my_flextable(digits = 2, caption = my_cap
 ```
 
 ```{r}
-cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis.\n"))
+my_data_beh %>% dplyr::group_by(state.condition) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, results = "hide", class.source = 'fold-show', message=FALSE, fig.cap="Posterior distributions of the estimated oxycodone drug effect obtained in the self-administration task in the two state induction conditions (left) and the effect of stress on this outcome calculate as stress condition minus control condition (right), within and across men and women after adjusting for drug liking. Dots and vertical lines indicate means, and 50 & 95% credible intervals."}
@@ -3244,7 +3278,8 @@ result$stats %>% my_flextable(digits = 2, caption = my_caption)
 ```
 
 ```{r}
-cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis.\n"))
+my_data_beh %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ### Effect obtained after adjusting for stress ratings at Q5
@@ -3284,7 +3319,8 @@ result$stats[, .(mean,CI,`P > 0`)] %>% my_flextable(digits = 2, caption = my_cap
 ```
 
 ```{r}
-cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis.\n"))
+my_data_beh %>% dplyr::group_by(state.condition) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, results = "hide", class.source = 'fold-show', message=FALSE, fig.cap="Posterior distributions of the estimated oxycodone drug effect obtained in the self-administration task in the two state induction conditions (left) and the effect of stress on this outcome calculate as stress condition minus control condition (right), within and across men and women after adjusting for stress ratings. Dots and vertical lines indicate means, and 50 & 95% credible intervals."}
@@ -3313,7 +3349,8 @@ result$stats %>% my_flextable(digits = 2, caption = my_caption)
 ```
 
 ```{r}
-cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis.\n"))
+my_data_beh %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ### Effect obtained after adjusting for unpleasant side effects at Q5 and Q6
@@ -3356,7 +3393,8 @@ result$stats[, .(mean,CI,`P > 0`)] %>% my_flextable(digits = 2, caption = my_cap
 ```
 
 ```{r}
-cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis.\n"))
+my_data_beh %>% dplyr::group_by(state.condition) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, results = "hide", class.source = 'fold-show', message=FALSE, fig.cap="Posterior distributions of the estimated oxycodone drug effect obtained in the self-administration task in the two state induction conditions (left) and the effect of stress on this outcome calculate as stress condition minus control condition (right), within and across men and women after adjusting for drug side effects. Dots and vertical lines indicate means, and 50 & 95% credible intervals."}
@@ -3385,7 +3423,8 @@ result$stats %>% my_flextable(digits = 2, caption = my_caption, footnote = my_fo
 ```
 
 ```{r}
-cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(my_data_beh$participant)), " participants were included in this analysis.\n"))
+my_data_beh %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ### OLR with sex effects and contraception adjustment
@@ -3448,7 +3487,8 @@ if (file.exists(fn)) {
 
 ```{r}
 if(file.exists("data/ContraceptiveUse.csv")){
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition, Sex, contraceptives) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 }
 ```
 
@@ -3509,12 +3549,6 @@ analysis_formula =
 }
 ```
 
-```{r}
-if(file.exists("data/NicotineUse.csv")){
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
-}
-```
-
 ```{r OLRSexAcatBRMSnic, results = "hide", message=FALSE}
 if(file.exists("data/NicotineUse.csv")){
 prior_sd = 2
@@ -3541,6 +3575,12 @@ if (file.exists(fn)) {
 
 ```
 
+```{r}
+if(file.exists("data/NicotineUse.csv")){
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition, Sex, nicotine) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
+}
+```
 
 ```{r}
 if(file.exists("data/NicotineUse.csv")){
@@ -3625,23 +3665,27 @@ plot.stats_table_target =
     my_data_beh[is.na(cheater)],
     outcome.var = "target.c")
 
-p1a = plot.stats_table_target$plot[[1]] + ylab("Desired % effect (main effect)")
-p1b = plot.stats_table_target$plot[[2]] + ylab("Desired % effect (main effect)")
-p2 = plot.stats_table_target$p2
+p1a = plot.stats_table_target$plot[[1]] + ylab("Desired % effect (main effect)")+theme(plot.tag=element_text(face="bold"))
+p1b = plot.stats_table_target$plot[[2]] + ylab("Desired % effect (main effect)")+theme(plot.tag=element_text(face="bold"))
+p2 = plot.stats_table_target$p2+theme(plot.tag=element_text(face="bold"))
 
 plot.stats_table_target$p1 = (p1a | p1b) + plot_layout(widths = c(1,1))
 
 px = 
   (p1a | p1b | p2) + 
   plot_layout(widths = c(2,2,1)) +
-  plot_annotation(tag_levels = 'A')
+  plot_annotation(tag_levels = 'a')
 ggsave(px,
        filename = "figures/Effect_Desired.png", 
        width = 20,height = 15, units = "cm")
+ggsave(px,
+       filename = "figures/Effect_Desired.pdf", 
+       width = 15.92,height = 11.94, units = "cm", scale=1.3, device=cairo_pdf)
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 Here are the estimated self-reported desired drug effects in men and women...
@@ -3731,7 +3775,8 @@ plot.stats_table_again =
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 Here are the estimated self-reported willingness to take the drug again:
@@ -3806,7 +3851,8 @@ plot.stats_table_again =
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(state.condition, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 Here are the estimated responses:
@@ -3849,7 +3895,7 @@ p1 = the_data[state.condition == "stress"] %>%
              group = factor(participant):factor(session))) + 
   geom_point(alpha = .5) + 
   geom_line(alpha = .5) + 
-  scale_col_drug 
+  scale_col_drug  + theme(plot.tag=element_text(face="bold"))
 
 pdata = 
   the_data[state.condition == "stress"] %>% 
@@ -3886,17 +3932,17 @@ p2 = pdata.stats %>%
   geom_bar(stat = "identity", alpha = .5) + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .25, size = 1) + 
   geom_beeswarm(data = pdata) +
-  theme(legend.position = "none") + 
+  theme(legend.position = "none", plot.tag=element_text(face="bold")) + 
   ylab("Drug effect")
 
 p3 = pdata  %>% 
   ggplot(aes(x = Drug_effect, fill=Sex)) + 
   geom_histogram(alpha = .5, position = "identity", bins = 20) +
   scale_col_sex +
-  theme(legend.position = "right") +
+  theme(legend.position = "right", plot.tag=element_text(face="bold")) +
   xlab("Drug effect (oxycodone - placebo)")
 
-p1 / (p2 | p3 ) + plot_annotation(tag_levels = 'A')
+p1 / (p2 | p3 ) + plot_annotation(tag_levels = 'a')
 
 ```
 
@@ -3926,7 +3972,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 From the model, we estimate the same contrasts as we visualized in the above figure:
@@ -3984,7 +4031,7 @@ p1 = pp %>%
   stat_pointinterval(position = position_dodge(.2)) + 
   geom_hline(yintercept = 0, col = "red", lty = 2) + 
   scale_col_drug +
-  ylab("Drug effect")
+  ylab("Drug effect") + theme(plot.tag=element_text(face="bold"))
 
 p2 = px %>% 
   ggplot(aes(x = drug_effect, fill = Sex)) + 
@@ -3992,11 +4039,11 @@ p2 = px %>%
   geom_density(alpha = .5, color = NA) + 
   facet_wrap(~Sex) + 
   scale_col_sex.b+
-  xlab("Drug effect (oxycodone - placebo)")
+  xlab("Drug effect (oxycodone - placebo)") + theme(plot.tag=element_text(face="bold"))
 
 (p1 | p2) + 
   plot_layout(widths = c(2,3)) + 
-  plot_annotation(tag_levels = "A")
+  plot_annotation(tag_levels = "a")
 ```
 
 We found no reliable effect of drug on self-reported stress in the stress condition. Oxycodone reduced self-reported stress by `r print_effect(px[Sex == "total",drug_effect], contr="O>P")`. In women and men, the effects were `r print_effect(px[Sex == "women",drug_effect], contr="O>P")` and `r print_effect(px[Sex == "men",drug_effect], contr="O>P")`, respectively.
@@ -4029,7 +4076,7 @@ p1 = the_data %>%
   geom_point(alpha = .5) + 
   facet_wrap(~state.condition) + 
   geom_line(alpha = .5) + 
-  scale_col_drug 
+  scale_col_drug  + theme(plot.tag=element_text(face="bold"))
 
 pdata = 
   the_data %>% 
@@ -4060,7 +4107,7 @@ p2 = pdata.stats %>%
   facet_wrap(~Sex) + 
   geom_beeswarm(data = pdata, aes(color = Drug)) +
   scale_col_drug +
-  theme(legend.position = "none")+
+  theme(legend.position = "none", plot.tag=element_text(face="bold"))+
   ylab("Stress effect")
 
 p3 = pdata  %>% 
@@ -4070,10 +4117,10 @@ p3 = pdata  %>%
   ggplot(aes(x = stress_x_drug, fill=Sex)) + 
   geom_histogram(alpha = .5, position = "identity", bins = 20) +
   scale_col_sex +
-  theme(legend.position = "right") +
+  theme(legend.position = "right", plot.tag=element_text(face="bold")) +
   xlab("Stress*Drug interaction")
 
-p1 / (p2 | p3 ) + plot_annotation(tag_levels = 'A')
+p1 / (p2 | p3 ) + plot_annotation(tag_levels = 'a')
 
 ```
 
@@ -4104,7 +4151,8 @@ if (file.exists(fn)) {
 ```
 
 ```{r}
-cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(fit$data$participant)), " participants were included in this analysis.\n"))
+fit$data %>% dplyr::group_by(induced.state, Drug, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 ```{r, fig.cap = "Summary of fit indicators. R-hat should be smaller than 1.01 and the effect sample size (ess) should be larger than 500.", fig.height=3}
@@ -4191,7 +4239,7 @@ p1 = pp %>%
   stat_pointinterval(position = position_dodge(.2)) + 
   geom_hline(yintercept = 0, col = "red", lty = 2) + 
   scale_col_drug +
-  ylab("Stress effect")
+  ylab("Stress effect") + theme(plot.tag=element_text(face="bold"))
 
 p2 = px %>% 
   ggplot(aes(x = stress_x_drug, fill = Sex)) + 
@@ -4199,11 +4247,11 @@ p2 = px %>%
   geom_density(alpha = .5, color = NA) + 
   facet_wrap(~Sex) + 
   scale_col_sex.b+
-  xlab("Stress*Drug interaction")
+  xlab("Stress*Drug interaction") + theme(plot.tag=element_text(face="bold"))
 
 (p1 | p2) + 
   plot_layout(widths = c(2,3)) + 
-  plot_annotation(tag_levels = "A")
+  plot_annotation(tag_levels = "a")
 ```
 
 
@@ -4224,9 +4272,10 @@ p =
   ((p_stressed | p_HeartRate | p_cortisol) /
     (p_posaffect | p_high | p_drug_like)) + 
   plot_layout(guides = "collect") + 
-  plot_annotation(tag_levels = "A")
+  plot_annotation(tag_levels = "a")
 
 ggsave("figures/F2.png", p , width = 2000, height = 2000, units = "px", scale = 1.3)
+ggsave("figures/F2.pdf", p , width = 15.92, height = 15.92, units = "cm", scale=1.4, device=cairo_pdf)
 ```
 
 ![Figure 2 (Time courses)](figures/F2.png)
@@ -4310,7 +4359,8 @@ summary_plot.drug_like =
          shape = guide_legend(nrow = 1, title.position = "left", title = "State induction")) + 
   theme(legend.position = c(.25,.1), axis.line.y = element_line(),
         legend.background = element_blank(),  panel.grid.major.y = element_blank(),
-        legend.title = element_text(size = 11), text = element_text(size = base.size.F4)) + 
+        legend.title = element_text(size = 11), text = element_text(size = base.size.F4),
+        plot.tag=element_text(face="bold")) + 
   scale_col_sex2a + ylab("Δ  Drug liking (VAS)") + xlab("") + gg_no_x_axis + 
   guides(shape=guide_legend(nrow=2, title = "State induction"))
 ```
@@ -4342,7 +4392,8 @@ emb_plots =
                    inherit.aes = FALSE, hjust = 0, size = 5,  label.size = NA) + 
         theme(legend.position = c(.25,.65), legend.background = element_blank(),
               legend.title = element_text(size = 11),legend.spacing = unit(0, "cm"),
-              text = element_text(size = base.size.F4)) + 
+              text = element_text(size = base.size.F4),
+              plot.tag=element_text(face="bold")) + 
         guides(fill = guide_legend(nrow = 2, title.position = "top",
                                    title = "Drug",title.hjust = 0), 
                shape = guide_legend(nrow = 2, title.position = "top",
@@ -4358,10 +4409,11 @@ emb_plot =
 ```{r}
 summary_plot = 
   (summary_plot.stress / (emb_plot | summary_plot.drug_like)) + 
-  plot_annotation(tag_levels = "A")
+  plot_annotation(tag_levels = "a")
 s.count = 0
 #d.count = 0
 ggsave(summary_plot,file = "figures/F4_summary_plot.png", width = 9, height = 7)
+ggsave(summary_plot,file = "figures/F4_summary_plot.pdf", width = 15.92, height = 12.38, units="cm", scale=1.5, device=cairo_pdf)
 ```
 
 ![Figure 4 (Overview of effects of stress and drug)](figures/F4_summary_plot.png)
@@ -4383,7 +4435,8 @@ ffit = lme4::lmer(
 ```
 
 ```{r}
-cat(paste0(length(unique(ffit@frame$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(ffit@frame$participant)), " participants were included in this analysis.\n"))
+ffit@frame %>% dplyr::group_by(induced.state, stage, Sex) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 To check the model, we first investigate model predictions. \@ref(fig:regpred1) shows that the model predictions, and even the best linear predictor, predict impossible negative values.
@@ -4461,7 +4514,8 @@ ffit = lme4::lmer(
 ```
 
 ```{r}
-cat(paste0(length(unique(ffit@frame$participant)), " participants were included in this analysis."))
+cat(paste0(length(unique(ffit@frame$participant)), " participants were included in this analysis.\n"))
+ffit@frame %>% dplyr::group_by(state.condition) %>% dplyr::summarise(n=dplyr::n_distinct(participant))
 ```
 
 To check the model, we first investigate model predictions. **The following figure shows that the distribution of model predictions deviates strongly from the observed values and also include impossible negative values.**[^4]
