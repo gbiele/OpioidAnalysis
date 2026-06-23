@@ -2956,7 +2956,7 @@ ggsave(plot.stats_table_obtained$plot,
         width = 20,height = 15, units = "cm")
 ggsave(plot.stats_table_obtained$plot,
         filename = "figures/Effect_Obtained.pdf", 
-        width = 15.92,height = 11.94, units = "cm", scale=1.3)
+        width = 15.92,height = 11.94, units = "cm", scale=1.3, device=cairo_pdf)
 ```
 
 ![Posterior distributions of the estimated oxycodone drug effect obtained in the self-administration task in the two state induction conditions (left) and the effect of stress on this outcome calculate as stress condition minus control condition (right), within and across men and women. Dots and vertical lines indicate means, and 50 & 95% credible intervals.](figures/Effect_Obtained.png){width="75%"}
@@ -3680,7 +3680,7 @@ ggsave(px,
        width = 20,height = 15, units = "cm")
 ggsave(px,
        filename = "figures/Effect_Desired.pdf", 
-       width = 15.92,height = 11.94, units = "cm", scale=1.3)
+       width = 15.92,height = 11.94, units = "cm", scale=1.3, device=cairo_pdf)
 ```
 
 ```{r}
@@ -4275,7 +4275,7 @@ p =
   plot_annotation(tag_levels = "a")
 
 ggsave("figures/F2.png", p , width = 2000, height = 2000, units = "px", scale = 1.3)
-ggsave("figures/F2.pdf", p , width = 15.92, height = 15.92, units = "cm", scale=1.4)
+ggsave("figures/F2.pdf", p , width = 15.92, height = 15.92, units = "cm", scale=1.4, device=cairo_pdf)
 ```
 
 ![Figure 2 (Time courses)](figures/F2.png)
